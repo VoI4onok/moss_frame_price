@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🖼️ Стоимость деревянных рамок</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #17a2b8;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+            color: white;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(32, 201, 151, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .result {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            border-left: 4px solid #17a2b8;
+            margin-bottom: 30px;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .result-row strong {
+            color: #333;
+        }
+
+        .result-row.total {
+            font-size: 18px;
+            color: #17a2b8;
+            font-weight: bold;
+            border-top: 2px solid #e0e0e0;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .calculation {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .calculation.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .calculation h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .calc-step {
+            margin: 15px 0;
+            padding: 12px;
+            background-color: white;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .calc-step strong {
+            color: #333;
+        }
+
+        .calc-formula {
+            font-family: 'Courier New', monospace;
+            color: #555;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        .calc-result {
+            font-weight: bold;
+            color: #17a2b8;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Калькулятор деревянных рамок</h1>
+        
+        <div class="input-group">
+            <label for="width">Ширина рамки (м):</label>
+            <input type="text" id="width" inputmode="decimal" pattern="[0-9]*[\.,]?[0-9]*" placeholder="Например: 0,4">
+        </div>
+
+        <div class="input-group">
+            <label for="height">Высота рамки (м):</label>
+            <input type="text" id="height" inputmode="decimal" pattern="[0-9]*[\.,]?[0-9]*" placeholder="Например: 0,6">
+        </div>
+
+        <div class="input-group">
+            <label for="backMaterial">Материал задней стенки:</label>
+            <select id="backMaterial">
+                <option value="2.3">Прескартон - 2,35 €/м²</option>
+                <option value="9.4">HDF 6 мм - 9,4 €/м²</option>
+                <option value="10.9">Фанера берёзовая 4 мм - 10,9 €/м²</option>
+                <option value="5">Фальката 3 мм - 5 €/м²</option>
+            </select>
+        </div>
+
+        <div class="input-group" style="display:flex; gap:10px; margin-top:10px;">
+              <button id="btnCalculate" class="calculate-btn" type="button">Рассчитать</button>
+              <button id="btnClear" class="reset-btn" type="button">Очистить</button>
+        </div>
+
+        <div class="result">
+            <div class="result-row">
+                <strong>Материал реек:</strong>
+                <span><span id="materialRack">0.00</span> €</span>
+            </div>
+            <div class="result-row">
+                <strong>Материал задней стенки:</strong>
+                <span><span id="materialBack">0.00</span> €</span>
+            </div>
+            <div class="result-row">
+                <strong>Работа сотрудника:</strong>
+                <span><span id="labor">0.00</span> €</span>
+            </div>
+            <div class="result-row">
+                <strong>Электричество:</strong>
+                <span><span id="electricity">0.00</span> €</span>
+            </div>
+            <div class="result-row">
+                <strong>Себестоимость:</strong>
+                <span><span id="costPrice">0.00</span> €</span>
+            </div>
+            <div class="result-row">
+                <strong>Прибыль:</strong>
+                <span><span id="profitAmount">0.00</span> €</span>
+            </div>
+            <div class="result-row total">
+                <strong>Стоимость:</strong>
+                <span><span id="profit">0.00</span> €</span>
+            </div>
+            <div class="result-row" style="background-color: #e8f4f8; margin-top: 20px; padding: 10px; border-radius: 4px; border-left: 4px solid #17a2b8;">
+                <strong>При заказе от 10 штук:</strong>
+                <span><span id="wholesalePrice">0.00</span> €</span>
+            </div>
+        </div>
+
+        <div class="calculation">
+            <h3>📋 Подробный расчет</h3>
+            
+            <div class="calc-step">
+                <div><strong>1. Периметр рамки:</strong></div>
+                <div class="calc-formula">Периметр = (Ширина + Высота) × 2</div>
+                <div class="calc-formula">= (<span id="calcWidth">0</span> + <span id="calcHeight">0</span>) × 2</div>
+                <div class="calc-result">= <span id="calcPerimeter">0.00</span> м</div>
+            </div>
+
+            <div class="calc-step">
+                <div><strong>2. Площадь изделия:</strong></div>
+                <div class="calc-formula">Площадь = Ширина × Высота</div>
+                <div class="calc-formula">= <span id="calcWidth2">0</span> × <span id="calcHeight2">0</span></div>
+                <div class="calc-result">= <span id="calcArea">0.00</span> м²</div>
+            </div>
+
+            <div class="calc-step">
+                <div><strong>3. Материал реек:</strong></div>
+                <div class="calc-formula">Рейки = Периметр × 2 €/м</div>
+                <div class="calc-formula">= <span id="calcPerimeter2">0.00</span> × 2</div>
+                <div class="calc-result">= <span id="calcRackCalc">0.00</span> €</div>
+            </div>
+
+            <div class="calc-step">
+                <div><strong>4. Работа сотрудника:</strong></div>
+                <div class="calc-formula">Работа = Периметр × 4 €/м</div>
+                <div class="calc-formula">= <span id="calcPerimeter3">0.00</span> × 4</div>
+                <div class="calc-result">= <span id="calcLaborCalc">0.00</span> €</div>
+            </div>
+
+            <div class="calc-step">
+                <div><strong>5. Электричество:</strong></div>
+                <div class="calc-formula">Электричество = Периметр × 0.7 €/м</div>
+                <div class="calc-formula">= <span id="calcPerimeter4">0.00</span> × 0.7</div>
+                <div class="calc-result">= <span id="calcElectricityCalc">0.00</span> €</div>
+            </div>
+
+            <div class="calc-step">
+                <div><strong>6. Материал задней стенки:</strong></div>
+                <div class="calc-formula">Материал = Площадь × Цена за м²</div>
+                <div class="calc-formula">= <span id="calcArea2">0.00</span> × <span id="calcMaterialPrice">0.00</span></div>
+                <div class="calc-result">= <span id="calcBackCalc">0.00</span> €</div>
+            </div>
+
+            <div class="calc-step">
+                <div><strong>7. Себестоимость:</strong></div>
+                <div class="calc-formula">Себестоимость = Рейки + Работа + Электричество + Материал</div>
+                <div class="calc-formula">= <span id="calcRackCalc2">0.00</span> + <span id="calcLaborCalc2">0.00</span> + <span id="calcElectricityCalc2">0.00</span> + <span id="calcBackCalc2">0.00</span></div>
+                <div class="calc-result">= <span id="calcCostCalc">0.00</span> €</div>
+            </div>
+
+            <div class="calc-step">
+                <div><strong>8. Стоимость:</strong></div>
+                <div class="calc-formula">Стоимость = (Себестоимость × 2) + (Себестоимость × 0.3)</div>
+                <div class="calc-formula">= (<span id="calcCostCalc2">0.00</span> × 2) + (<span id="calcCostCalc3">0.00</span> × 0.3)</div>
+                <div class="calc-formula">= <span id="calcPart1">0.00</span> + <span id="calcPart2">0.00</span></div>
+                <div class="calc-result">= <span id="calcProfitCalc">0.00</span> €</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputs = ['width', 'height', 'backMaterial'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('change', saveToLocalStorage);
+        });
+
+        // Обработка прокрутки колёсика мыши для изменения значений
+        document.getElementById('width').addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('width');
+            const step = 0.01;
+            const currentValue = parseNumber(input.value);
+            const newValue = e.deltaY < 0 ? currentValue + step : currentValue - step;
+            const display = Math.max(0, newValue);
+            input.value = display.toFixed(2).replace('.', ',');
+            saveToLocalStorage();
+        });
+
+        document.getElementById('height').addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('height');
+            const step = 0.01;
+            const currentValue = parseNumber(input.value);
+            const newValue = e.deltaY < 0 ? currentValue + step : currentValue - step;
+            const display = Math.max(0, newValue);
+            input.value = display.toFixed(2).replace('.', ',');
+            saveToLocalStorage();
+        });
+
+        // Кнопки: Рассчитать и Очистить
+        document.getElementById('btnCalculate').addEventListener('click', (e) => {
+            e.preventDefault();
+            calculate();
+            saveToLocalStorage();
+            document.getElementById('profit').closest('.result').classList.add('show');
+            document.querySelector('.calculation').classList.add('show');
+        });
+
+        document.getElementById('btnClear').addEventListener('click', (e) => {
+            e.preventDefault();
+            clearAll();
+            document.getElementById('profit').closest('.result').classList.remove('show');
+            document.querySelector('.calculation').classList.remove('show');
+        });
+
+        function clearAll() {
+            document.getElementById('width').value = '';
+            document.getElementById('height').value = '';
+            document.getElementById('backMaterial').selectedIndex = 0;
+            storageRemove('frameWidth');
+            storageRemove('frameHeight');
+            storageRemove('backMaterial');
+            calculate();
+        }
+
+        // Вспомогательная функция: парсит число, заменяя запятую на точку (устраняет проблемы мобильных клавиатур)
+        function parseNumber(value) {
+            if (value === null || value === undefined) return 0;
+            // toString and normalize unicode spaces
+            let s = String(value).replace(/\u00A0|\s+/g, '').replace(',', '.').trim();
+            // extract first numeric token (handles leading text)
+            const m = s.match(/-?\d+(?:[\.,]\d+)?/);
+            if (!m) return 0;
+            const n = parseFloat(m[0].replace(',', '.'));
+            return isNaN(n) ? 0 : n;
+        }
+
+        // Унифицированный безопасный доступ к хранилищу с fallback
+        const _storageFallback = {};
+        function storageSet(key, value) {
+            try { localStorage.setItem(key, value); return; } catch (e) {}
+            try { sessionStorage.setItem(key, value); return; } catch (e) {}
+            _storageFallback[key] = value;
+        }
+        function storageGet(key) {
+            try { const v = localStorage.getItem(key); if (v !== null) return v; } catch (e) {}
+            try { const v2 = sessionStorage.getItem(key); if (v2 !== null) return v2; } catch (e) {}
+            return _storageFallback.hasOwnProperty(key) ? _storageFallback[key] : null;
+        }
+        function storageRemove(key) {
+            try { localStorage.removeItem(key); } catch (e) {}
+            try { sessionStorage.removeItem(key); } catch (e) {}
+            if (_storageFallback.hasOwnProperty(key)) delete _storageFallback[key];
+        }
+
+        // Загрузка сохраненных данных при загрузке страницы (использует безопасный getter)
+        function loadFromLocalStorage() {
+            const savedWidth = storageGet('frameWidth');
+            const savedHeight = storageGet('frameHeight');
+            const savedMaterial = storageGet('backMaterial');
+
+            if (savedWidth) document.getElementById('width').value = savedWidth;
+            if (savedHeight) document.getElementById('height').value = savedHeight;
+            if (savedMaterial) document.getElementById('backMaterial').value = savedMaterial;
+
+            calculate();
+        }
+
+        // Сохранение данных с безопасным сеттером
+        function saveToLocalStorage() {
+            storageSet('frameWidth', document.getElementById('width').value);
+            storageSet('frameHeight', document.getElementById('height').value);
+            storageSet('backMaterial', document.getElementById('backMaterial').value);
+        }
+
+        function calculate() {
+            const width = parseNumber(document.getElementById('width').value);
+            const height = parseNumber(document.getElementById('height').value);
+            const backMaterialPrice = parseNumber(document.getElementById('backMaterial').value);
+
+            // Периметр рамки в метрах
+            const perimeter = 2 * (width + height);
+
+            // Площадь изделия в м²
+            const area = width * height;
+
+            // Расчеты стоимости компонентов
+            const materialRack = perimeter * 2;      // 2 € за метр реек
+            const materialBack = area * backMaterialPrice;  // цена материала за м²
+            const labor = perimeter * 4;             // 4 € за метр работы
+            const electricity = perimeter * 0.7;     // 0.7 € за метр электричества
+
+            // Себестоимость - сумма всех затрат
+            const costPrice = materialRack + materialBack + labor + electricity;
+
+            // Стоимость (финальная цена) по формуле: (себестоимость * 2) + (себестоимость * 0.3)
+            const finalPrice = (costPrice * 2) + (costPrice * 0.3);
+
+            // Прибыль = Стоимость - Себестоимость
+            const profitAmount = finalPrice - costPrice;
+
+            // Оптовая цена за 1 шт. (10+ штук): себестоимость * 2
+            const wholesalePrice = costPrice * 2;
+
+            // Вывод результатов в основной калькулятор
+            document.getElementById('materialRack').textContent = materialRack.toFixed(2);
+            document.getElementById('materialBack').textContent = materialBack.toFixed(2);
+            document.getElementById('labor').textContent = labor.toFixed(2);
+            document.getElementById('electricity').textContent = electricity.toFixed(2);
+            document.getElementById('costPrice').textContent = costPrice.toFixed(2);
+            document.getElementById('profitAmount').textContent = profitAmount.toFixed(2);
+            document.getElementById('profit').textContent = finalPrice.toFixed(2);
+            document.getElementById('wholesalePrice').textContent = wholesalePrice.toFixed(2);
+
+            // Вывод подробного расчета
+            // Шаг 1: Периметр
+            document.getElementById('calcWidth').textContent = width.toFixed(2);
+            document.getElementById('calcHeight').textContent = height.toFixed(2);
+            document.getElementById('calcPerimeter').textContent = perimeter.toFixed(2);
+
+            // Шаг 2: Площадь
+            document.getElementById('calcWidth2').textContent = width.toFixed(2);
+            document.getElementById('calcHeight2').textContent = height.toFixed(2);
+            document.getElementById('calcArea').textContent = area.toFixed(2);
+
+            // Шаг 3: Материал реек
+            document.getElementById('calcPerimeter2').textContent = perimeter.toFixed(2);
+            document.getElementById('calcRackCalc').textContent = materialRack.toFixed(2);
+
+            // Шаг 4: Работа
+            document.getElementById('calcPerimeter3').textContent = perimeter.toFixed(2);
+            document.getElementById('calcLaborCalc').textContent = labor.toFixed(2);
+
+            // Шаг 5: Электричество
+            document.getElementById('calcPerimeter4').textContent = perimeter.toFixed(2);
+            document.getElementById('calcElectricityCalc').textContent = electricity.toFixed(2);
+
+            // Шаг 6: Материал задней стенки
+            document.getElementById('calcArea2').textContent = area.toFixed(2);
+            document.getElementById('calcMaterialPrice').textContent = backMaterialPrice.toFixed(2);
+            document.getElementById('calcBackCalc').textContent = materialBack.toFixed(2);
+
+            // Шаг 7: Себестоимость
+            document.getElementById('calcRackCalc2').textContent = materialRack.toFixed(2);
+            document.getElementById('calcLaborCalc2').textContent = labor.toFixed(2);
+            document.getElementById('calcElectricityCalc2').textContent = electricity.toFixed(2);
+            document.getElementById('calcBackCalc2').textContent = materialBack.toFixed(2);
+            document.getElementById('calcCostCalc').textContent = costPrice.toFixed(2);
+
+            // Шаг 8: Прибыль
+            document.getElementById('calcCostCalc2').textContent = costPrice.toFixed(2);
+            document.getElementById('calcCostCalc3').textContent = costPrice.toFixed(2);
+            document.getElementById('calcPart1').textContent = (costPrice * 2).toFixed(2);
+            document.getElementById('calcPart2').textContent = (costPrice * 0.3).toFixed(2);
+            document.getElementById('calcProfitCalc').textContent = finalPrice.toFixed(2);
+        }
+
+        // Загрузить сохраненные данные при загрузке страницы
+        loadFromLocalStorage();
+    </script>
+</body>
+</html>
