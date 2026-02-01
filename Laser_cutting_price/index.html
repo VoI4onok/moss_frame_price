@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✂️ Калькулятор стоимости лазерной резки</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+
+        .unit {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .reset-btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ff6b6b;
+        }
+
+        .currency {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✂️ Лазерная резка</h1>
+        <p class="subtitle">Калькулятор стоимости резки</p>
+
+        <div class="input-group">
+            <label for="length">Длина пути резки (мм)</label>
+            <input type="text" id="length" placeholder="Например: 500" value="0">
+            <div class="unit">миллиметры</div>
+            <div class="error" id="lengthError">Пожалуйста, введите корректное число</div>
+        </div>
+
+        <div class="input-group">
+            <label for="width">Ширина материала (мм)</label>
+            <input type="text" id="width" placeholder="Например: 300" value="0">
+            <div class="unit">миллиметры</div>
+            <div class="error" id="widthError">Пожалуйста, введите корректное число</div>
+        </div>
+
+        <div class="input-group">
+            <label for="material">Материал</label>
+            <select id="material">
+                <option value="wood">Дерево (0.50 руб/см)</option>
+                <option value="acrylic">Акрил (0.40 руб/см)</option>
+                <option value="fabric">Ткань (0.30 руб/см)</option>
+                <option value="leather">Кожа (0.60 руб/см)</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="powerPercentage">Мощность (%)</label>
+            <input type="text" id="powerPercentage" placeholder="Например: 100" value="100">
+            <div class="unit">0-100%</div>
+            <div class="error" id="powerError">Пожалуйста, введите число от 0 до 100</div>
+        </div>
+
+        <div class="input-group">
+            <label for="pricePerCm">Цена за 1 см пути (руб.)</label>
+            <input type="text" id="pricePerCm" placeholder="Например: 0.50" value="0.50">
+            <div class="error" id="priceError">Пожалуйста, введите корректное число</div>
+        </div>
+
+        <div class="button-group">
+            <button class="calculate-btn" onclick="calculatePrice()">Рассчитать</button>
+            <button class="reset-btn" onclick="resetForm()">Сброс</button>
+        </div>
+
+        <div class="result" id="result">
+            <div class="result-label">Итоговая стоимость:</div>
+            <div class="result-value"><span id="resultPrice">0</span> <span class="currency">₽</span></div>
+        </div>
+    </div>
+
+    <script>
+        function calculatePrice() {
+            const length = parseFloat(document.getElementById('length').value) || 0;
+            const width = parseFloat(document.getElementById('width').value) || 0;
+            const powerPercentage = parseFloat(document.getElementById('powerPercentage').value) || 100;
+            const pricePerCm = parseFloat(document.getElementById('pricePerCm').value) || 0;
+
+            // Clearemos todos los errores
+            document.getElementById('lengthError').classList.remove('show');
+            document.getElementById('widthError').classList.remove('show');
+            document.getElementById('powerError').classList.remove('show');
+            document.getElementById('priceError').classList.remove('show');
+
+            // Validación
+            let hasError = false;
+
+            if (length <= 0) {
+                document.getElementById('lengthError').classList.add('show');
+                hasError = true;
+            }
+
+            if (width <= 0) {
+                document.getElementById('widthError').classList.add('show');
+                hasError = true;
+            }
+
+            if (powerPercentage < 0 || powerPercentage > 100) {
+                document.getElementById('powerError').classList.add('show');
+                hasError = true;
+            }
+
+            if (pricePerCm < 0) {
+                document.getElementById('priceError').classList.add('show');
+                hasError = true;
+            }
+
+            if (hasError) {
+                document.getElementById('result').classList.remove('show');
+                return;
+            }
+
+            // Калькуляция
+            const pathLength = length + (width * 2); // Путь резки в мм
+            const pathLengthCm = pathLength / 10; // Конвертируем в см
+            const powerMultiplier = powerPercentage / 100; // Множитель мощности
+            
+            const totalPrice = pathLengthCm * pricePerCm * powerMultiplier;
+
+            document.getElementById('resultPrice').textContent = totalPrice.toFixed(2);
+            document.getElementById('result').classList.add('show');
+        }
+
+        function resetForm() {
+            document.getElementById('length').value = '0';
+            document.getElementById('width').value = '0';
+            document.getElementById('material').value = 'wood';
+            document.getElementById('powerPercentage').value = '100';
+            document.getElementById('pricePerCm').value = '0.50';
+            document.getElementById('result').classList.remove('show');
+            
+            // Очищаем ошибки
+            document.getElementById('lengthError').classList.remove('show');
+            document.getElementById('widthError').classList.remove('show');
+            document.getElementById('powerError').classList.remove('show');
+            document.getElementById('priceError').classList.remove('show');
+        }
+
+        // Позволяем рассчитать по Enter
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                calculatePrice();
+            }
+        });
+    </script>
+</body>
+</html>
