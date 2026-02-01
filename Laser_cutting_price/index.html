@@ -56,7 +56,7 @@
             font-size: 14px;
         }
 
-        input[type="text"], select {
+        input[type="text"], input[type="number"], select {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
@@ -65,9 +65,22 @@
             transition: border-color 0.3s;
         }
 
-        input[type="text"]:focus, select:focus {
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
             outline: none;
             border-color: #ff6b6b;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 36px;
         }
 
         .unit {
@@ -168,40 +181,35 @@
         <p class="subtitle">Калькулятор стоимости резки</p>
 
         <div class="input-group">
-            <label for="length">Длина пути резки (мм)</label>
-            <input type="text" id="length" placeholder="Например: 500" value="0">
-            <div class="unit">миллиметры</div>
+            <label for="length">Длина реза в метрах</label>
+            <input type="number" id="length" placeholder="Например: 5" value="0" step="0.01" min="0">
+            <div class="unit">метры</div>
             <div class="error" id="lengthError">Пожалуйста, введите корректное число</div>
         </div>
 
         <div class="input-group">
-            <label for="width">Ширина материала (мм)</label>
-            <input type="text" id="width" placeholder="Например: 300" value="0">
-            <div class="unit">миллиметры</div>
-            <div class="error" id="widthError">Пожалуйста, введите корректное число</div>
-        </div>
-
-        <div class="input-group">
             <label for="material">Материал</label>
-            <select id="material">
-                <option value="wood">Дерево (0.50 руб/см)</option>
-                <option value="acrylic">Акрил (0.40 руб/см)</option>
-                <option value="fabric">Ткань (0.30 руб/см)</option>
-                <option value="leather">Кожа (0.60 руб/см)</option>
-            </select>
+            <div class="select-wrapper">
+                <select id="material" onchange="updateTariffs()">
+                    <option value="">Выберите материал...</option>
+                    <option value="wood">Дерево</option>
+                    <option value="acrylic">Акрил</option>
+                    <option value="fabric">Ткань</option>
+                    <option value="leather">Кожа</option>
+                    <option value="metal">Метал</option>
+                </select>
+            </div>
+            <div class="error" id="materialError">Пожалуйста, выберите материал</div>
         </div>
 
         <div class="input-group">
-            <label for="powerPercentage">Мощность (%)</label>
-            <input type="text" id="powerPercentage" placeholder="Например: 100" value="100">
-            <div class="unit">0-100%</div>
-            <div class="error" id="powerError">Пожалуйста, введите число от 0 до 100</div>
-        </div>
-
-        <div class="input-group">
-            <label for="pricePerCm">Цена за 1 см пути (руб.)</label>
-            <input type="text" id="pricePerCm" placeholder="Например: 0.50" value="0.50">
-            <div class="error" id="priceError">Пожалуйста, введите корректное число</div>
+            <label for="tariff">Тариф</label>
+            <div class="select-wrapper">
+                <select id="tariff">
+                    <option value="">Сначала выберите материал</option>
+                </select>
+            </div>
+            <div class="error" id="tariffError">Пожалуйста, выберите тариф</div>
         </div>
 
         <div class="button-group">
@@ -216,19 +224,107 @@
     </div>
 
     <script>
+        // Данные о материалах и тарифах (цена за метр реза)
+        const materialsData = {
+            wood: {
+                name: 'Дерево',
+                tariffs: [
+                    { name: '1 изделие', pricePerMeter: 50 },
+                    { name: 'От 10 изделий', pricePerMeter: 45 },
+                    { name: 'От 30 изделий', pricePerMeter: 40 },
+                    { name: 'От 50 изделий', pricePerMeter: 35 },
+                ]
+            },
+            acrylic: {
+                name: 'Акрил',
+                tariffs: [
+                    { name: '1 изделие', pricePerMeter: 40 },
+                    { name: 'От 10 изделий', pricePerMeter: 36 },
+                    { name: 'От 30 изделий', pricePerMeter: 32 },
+                    { name: 'От 50 изделий', pricePerMeter: 28 },
+                ]
+            },
+            fabric: {
+                name: 'Ткань',
+                tariffs: [
+                    { name: '1 изделие', pricePerMeter: 30 },
+                    { name: 'От 10 изделий', pricePerMeter: 27 },
+                    { name: 'От 30 изделий', pricePerMeter: 24 },
+                    { name: 'От 50 изделий', pricePerMeter: 21 },
+                ]
+            },
+            leather: {
+                name: 'Кожа',
+                tariffs: [
+                    { name: '1 изделие', pricePerMeter: 60 },
+                    { name: 'От 10 изделий', pricePerMeter: 54 },
+                    { name: 'От 30 изделий', pricePerMeter: 48 },
+                    { name: 'От 50 изделий', pricePerMeter: 42 },
+                ]
+            },
+            metal: {
+                name: 'Метал',
+                tariffs: [
+                    { name: '1 изделие', pricePerMeter: 80 },
+                    { name: 'От 10 изделий', pricePerMeter: 72 },
+                    { name: 'От 30 изделий', pricePerMeter: 64 },
+                    { name: 'От 50 изделий', pricePerMeter: 56 },
+                ]
+            }
+        };
+
+        function updateTariffs() {
+            const selectedMaterial = document.getElementById('material').value;
+            const tariffSelect = document.getElementById('tariff');
+            const tariffError = document.getElementById('tariffError');
+            
+            tariffSelect.innerHTML = '';
+            tariffError.classList.remove('show');
+            
+            if (!selectedMaterial) {
+                tariffSelect.innerHTML = '<option value="">Сначала выберите материал</option>';
+                return;
+            }
+            
+            const material = materialsData[selectedMaterial];
+            if (material) {
+                // Добавляем вариант с минимальной ценой
+                const minPrice = Math.min(...material.tariffs.map(t => t.pricePerMeter));
+                const minTariff = material.tariffs.find(t => t.pricePerMeter === minPrice);
+                
+                const firstOption = document.createElement('option');
+                firstOption.value = '';
+                firstOption.textContent = 'Выберите тариф...';
+                tariffSelect.appendChild(firstOption);
+                
+                material.tariffs.forEach((tariff, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${tariff.name} - ${tariff.pricePerMeter} ₽/м`;
+                    tariffSelect.appendChild(option);
+                });
+                
+                // Добавляем вариант с минимальной ценой
+                const bestOption = document.createElement('option');
+                const bestIndex = material.tariffs.indexOf(minTariff);
+                bestOption.value = bestIndex;
+                bestOption.textContent = `⭐ Минимальная цена - ${minPrice} ₽/м (${minTariff.name})`;
+                bestOption.style.fontWeight = 'bold';
+                tariffSelect.appendChild(bestOption);
+            }
+        }
+
         function calculatePrice() {
             const length = parseFloat(document.getElementById('length').value) || 0;
-            const width = parseFloat(document.getElementById('width').value) || 0;
-            const powerPercentage = parseFloat(document.getElementById('powerPercentage').value) || 100;
-            const pricePerCm = parseFloat(document.getElementById('pricePerCm').value) || 0;
+            const materialValue = document.getElementById('material').value;
+            const tariffValue = document.getElementById('tariff').value;
 
-            // Clearemos todos los errores
+            // Очищаем все ошибки
             document.getElementById('lengthError').classList.remove('show');
-            document.getElementById('widthError').classList.remove('show');
-            document.getElementById('powerError').classList.remove('show');
-            document.getElementById('priceError').classList.remove('show');
+            document.getElementById('materialError').classList.remove('show');
+            document.getElementById('tariffError').classList.remove('show');
 
-            // Validación
+            // Валидация
             let hasError = false;
 
             if (length <= 0) {
@@ -236,18 +332,13 @@
                 hasError = true;
             }
 
-            if (width <= 0) {
-                document.getElementById('widthError').classList.add('show');
+            if (!materialValue) {
+                document.getElementById('materialError').classList.add('show');
                 hasError = true;
             }
 
-            if (powerPercentage < 0 || powerPercentage > 100) {
-                document.getElementById('powerError').classList.add('show');
-                hasError = true;
-            }
-
-            if (pricePerCm < 0) {
-                document.getElementById('priceError').classList.add('show');
+            if (tariffValue === '') {
+                document.getElementById('tariffError').classList.add('show');
                 hasError = true;
             }
 
@@ -256,12 +347,13 @@
                 return;
             }
 
-            // Калькуляция
-            const pathLength = length + (width * 2); // Путь резки в мм
-            const pathLengthCm = pathLength / 10; // Конвертируем в см
-            const powerMultiplier = powerPercentage / 100; // Множитель мощности
+            // Расчёт
+            const material = materialsData[materialValue];
+            const tariffIndex = parseInt(tariffValue);
+            const tariff = material.tariffs[tariffIndex];
+            const pricePerMeter = tariff.pricePerMeter;
             
-            const totalPrice = pathLengthCm * pricePerCm * powerMultiplier;
+            const totalPrice = length * pricePerMeter;
 
             document.getElementById('resultPrice').textContent = totalPrice.toFixed(2);
             document.getElementById('result').classList.add('show');
@@ -269,17 +361,14 @@
 
         function resetForm() {
             document.getElementById('length').value = '0';
-            document.getElementById('width').value = '0';
-            document.getElementById('material').value = 'wood';
-            document.getElementById('powerPercentage').value = '100';
-            document.getElementById('pricePerCm').value = '0.50';
+            document.getElementById('material').value = '';
+            document.getElementById('tariff').innerHTML = '<option value="">Сначала выберите материал</option>';
             document.getElementById('result').classList.remove('show');
             
             // Очищаем ошибки
             document.getElementById('lengthError').classList.remove('show');
-            document.getElementById('widthError').classList.remove('show');
-            document.getElementById('powerError').classList.remove('show');
-            document.getElementById('priceError').classList.remove('show');
+            document.getElementById('materialError').classList.remove('show');
+            document.getElementById('tariffError').classList.remove('show');
         }
 
         // Позволяем рассчитать по Enter
