@@ -192,11 +192,14 @@
             <div class="select-wrapper">
                 <select id="material" onchange="updateTariffs()">
                     <option value="">Выберите материал...</option>
-                    <option value="wood">Дерево</option>
-                    <option value="acrylic">Акрил</option>
-                    <option value="fabric">Ткань</option>
-                    <option value="leather">Кожа</option>
-                    <option value="metal">Метал</option>
+                    <option value="birch_plywood_4">Берёзовая фанера 4 мм</option>
+                    <option value="birch_plywood_6">Берёзовая фанера 6 мм</option>
+                    <option value="falkate_3">Фальката 3 мм</option>
+                    <option value="falkate_5">Фальката 5 мм</option>
+                    <option value="acrylic_2_3">Оргстекло 2-3 мм</option>
+                    <option value="acrylic_6">Оргстекло 6 мм</option>
+                    <option value="pressboard_3">Пресскартон 3 мм</option>
+                    <option value="hdf_6">HDF 6 мм</option>
                 </select>
             </div>
             <div class="error" id="materialError">Пожалуйста, выберите материал</div>
@@ -219,56 +222,91 @@
 
         <div class="result" id="result">
             <div class="result-label">Итоговая стоимость:</div>
-            <div class="result-value"><span id="resultPrice">0</span> <span class="currency">₽</span></div>
+            <div class="result-value"><span id="resultPrice">0</span> <span class="currency">€</span></div>
         </div>
     </div>
 
     <script>
-        // Данные о материалах и тарифах (цена за метр реза)
+        // Данные о материалах и тарифах (цена за метр реза в евро)
         const materialsData = {
-            wood: {
-                name: 'Дерево',
+            birch_plywood_4: {
+                name: 'Берёзовая фанера 4 мм',
                 tariffs: [
-                    { name: '1 изделие', pricePerMeter: 50 },
-                    { name: 'От 10 изделий', pricePerMeter: 45 },
-                    { name: 'От 30 изделий', pricePerMeter: 40 },
-                    { name: 'От 50 изделий', pricePerMeter: 35 },
+                    { name: '1 изделие', pricePerMeter: 0.60 },
+                    { name: 'От 10 изделий', pricePerMeter: 0.70 },
+                    { name: 'От 30 изделий', pricePerMeter: 0.90 },
+                    { name: 'От 50 изделий', pricePerMeter: 1.00 },
+                    { name: 'От 100 изделий', pricePerMeter: 1.20 },
                 ]
             },
-            acrylic: {
-                name: 'Акрил',
+            birch_plywood_6: {
+                name: 'Берёзовая фанера 6 мм',
                 tariffs: [
-                    { name: '1 изделие', pricePerMeter: 40 },
-                    { name: 'От 10 изделий', pricePerMeter: 36 },
-                    { name: 'От 30 изделий', pricePerMeter: 32 },
-                    { name: 'От 50 изделий', pricePerMeter: 28 },
+                    { name: '1 изделие', pricePerMeter: 0.90 },
+                    { name: 'От 10 изделий', pricePerMeter: 1.25 },
+                    { name: 'От 30 изделий', pricePerMeter: 1.60 },
+                    { name: 'От 50 изделий', pricePerMeter: 1.70 },
+                    { name: 'От 100 изделий', pricePerMeter: 1.80 },
                 ]
             },
-            fabric: {
-                name: 'Ткань',
+            falkate_3: {
+                name: 'Фальката 3 мм',
                 tariffs: [
-                    { name: '1 изделие', pricePerMeter: 30 },
-                    { name: 'От 10 изделий', pricePerMeter: 27 },
-                    { name: 'От 30 изделий', pricePerMeter: 24 },
-                    { name: 'От 50 изделий', pricePerMeter: 21 },
+                    { name: '1 изделие', pricePerMeter: 0.35 },
+                    { name: 'От 10 изделий', pricePerMeter: 0.40 },
+                    { name: 'От 30 изделий', pricePerMeter: 0.50 },
+                    { name: 'От 50 изделий', pricePerMeter: 0.60 },
+                    { name: 'От 100 изделий', pricePerMeter: 0.70 },
                 ]
             },
-            leather: {
-                name: 'Кожа',
+            falkate_5: {
+                name: 'Фальката 5 мм',
                 tariffs: [
-                    { name: '1 изделие', pricePerMeter: 60 },
-                    { name: 'От 10 изделий', pricePerMeter: 54 },
-                    { name: 'От 30 изделий', pricePerMeter: 48 },
-                    { name: 'От 50 изделий', pricePerMeter: 42 },
+                    { name: '1 изделие', pricePerMeter: 0.50 },
+                    { name: 'От 10 изделий', pricePerMeter: 0.60 },
+                    { name: 'От 30 изделий', pricePerMeter: 0.80 },
+                    { name: 'От 50 изделий', pricePerMeter: 0.90 },
+                    { name: 'От 100 изделий', pricePerMeter: 1.00 },
                 ]
             },
-            metal: {
-                name: 'Метал',
+            acrylic_2_3: {
+                name: 'Оргстекло 2-3 мм',
                 tariffs: [
-                    { name: '1 изделие', pricePerMeter: 80 },
-                    { name: 'От 10 изделий', pricePerMeter: 72 },
-                    { name: 'От 30 изделий', pricePerMeter: 64 },
-                    { name: 'От 50 изделий', pricePerMeter: 56 },
+                    { name: '1 изделие', pricePerMeter: 0.60 },
+                    { name: 'От 10 изделий', pricePerMeter: 2.00 },
+                    { name: 'От 30 изделий', pricePerMeter: 2.50 },
+                    { name: 'От 50 изделий', pricePerMeter: 3.00 },
+                    { name: 'От 100 изделий', pricePerMeter: 4.00 },
+                ]
+            },
+            acrylic_6: {
+                name: 'Оргстекло 6 мм',
+                tariffs: [
+                    { name: '1 изделие', pricePerMeter: 0.90 },
+                    { name: 'От 10 изделий', pricePerMeter: 2.50 },
+                    { name: 'От 30 изделий', pricePerMeter: 3.50 },
+                    { name: 'От 50 изделий', pricePerMeter: 4.00 },
+                    { name: 'От 100 изделий', pricePerMeter: 5.00 },
+                ]
+            },
+            pressboard_3: {
+                name: 'Пресскартон 3 мм',
+                tariffs: [
+                    { name: '1 изделие', pricePerMeter: 0.35 },
+                    { name: 'От 10 изделий', pricePerMeter: 0.40 },
+                    { name: 'От 30 изделий', pricePerMeter: 0.50 },
+                    { name: 'От 50 изделий', pricePerMeter: 0.60 },
+                    { name: 'От 100 изделий', pricePerMeter: 0.70 },
+                ]
+            },
+            hdf_6: {
+                name: 'HDF 6 мм',
+                tariffs: [
+                    { name: '1 изделие', pricePerMeter: 0.60 },
+                    { name: 'От 10 изделий', pricePerMeter: 0.70 },
+                    { name: 'От 30 изделий', pricePerMeter: 0.90 },
+                    { name: 'От 50 изделий', pricePerMeter: 1.00 },
+                    { name: 'От 100 изделий', pricePerMeter: 1.20 },
                 ]
             }
         };
@@ -300,7 +338,7 @@
                 material.tariffs.forEach((tariff, index) => {
                     const option = document.createElement('option');
                     option.value = index;
-                    option.textContent = `${tariff.name} - ${tariff.pricePerMeter} ₽/м`;
+                    option.textContent = `${tariff.name} - ${tariff.pricePerMeter} €/м`;
                     tariffSelect.appendChild(option);
                 });
                 
@@ -308,7 +346,7 @@
                 const bestOption = document.createElement('option');
                 const bestIndex = material.tariffs.indexOf(minTariff);
                 bestOption.value = bestIndex;
-                bestOption.textContent = `⭐ Минимальная цена - ${minPrice} ₽/м (${minTariff.name})`;
+                bestOption.textContent = `⭐ Минимальная цена - ${minPrice} €/м (${minTariff.name})`;
                 bestOption.style.fontWeight = 'bold';
                 tariffSelect.appendChild(bestOption);
             }
