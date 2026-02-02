@@ -1,424 +1,133 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✂️ Калькулятор стоимости лазерной резки</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✂️ Калькулятор лазерной резки</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 100%;
-        }
+body {
+    font-family: Segoe UI, sans-serif;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            text-align: center;
-            font-size: 28px;
-        }
+.container {
+    background: #fff;
+    padding: 40px;
+    border-radius: 15px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0,0,0,.3);
+}
 
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
+h1 { text-align: center; margin-bottom: 10px; }
+.subtitle { text-align: center; color: #666; margin-bottom: 30px; }
 
-        .input-group {
-            margin-bottom: 25px;
-        }
+.input-group { margin-bottom: 22px; }
 
-        label {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
+label { font-weight: 600; display: block; margin-bottom: 6px; }
 
-        input[type="text"], input[type="number"], select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
+input, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    font-size: 16px;
+}
 
-        input[type="text"]:focus, input[type="number"]:focus, select:focus {
-            outline: none;
-            border-color: #ff6b6b;
-        }
+input:focus, select:focus {
+    outline: none;
+    border-color: #ff6b6b;
+}
 
-        .select-wrapper {
-            position: relative;
-        }
+.unit { font-size: 12px; color: #666; margin-top: 4px; }
 
-        .select-wrapper select {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 20px;
-            padding-right: 36px;
-        }
+.error {
+    color: #ff6b6b;
+    font-size: 12px;
+    display: none;
+    margin-top: 4px;
+}
+.error.show { display: block; }
 
-        .unit {
-            color: #666;
-            font-size: 12px;
-            margin-top: 5px;
-        }
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin: 30px 0;
+}
 
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
+button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
 
-        button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+.calculate-btn {
+    background: linear-gradient(135deg,#ff6b6b,#ee5a6f);
+    color: #fff;
+}
 
-        .calculate-btn {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            color: white;
-        }
+.reset-btn { background: #f0f0f0; }
 
-        .calculate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
+.result {
+    display: none;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #ff6b6b;
+}
 
-        .calculate-btn:active {
-            transform: translateY(0);
-        }
+.result.show { display: block; }
 
-        .reset-btn {
-            background: #f0f0f0;
-            color: #333;
-        }
+.result-value {
+    font-size: 34px;
+    font-weight: 700;
+    color: #ff6b6b;
+}
 
-        .reset-btn:hover {
-            background: #e0e0e0;
-            transform: translateY(-2px);
-        }
-
-        .reset-btn:active {
-            transform: translateY(0);
-        }
-
-        .result {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            border-left: 4px solid #ff6b6b;
-            display: none;
-        }
-
-        .result.show {
-            display: block;
-        }
-
-        .result-label {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .result-value {
-            font-size: 36px;
-            font-weight: 700;
-            color: #ff6b6b;
-        }
-
-        .currency {
-            font-size: 18px;
-            color: #666;
-        }
-
-        .error {
-            color: #ff6b6b;
-            font-size: 12px;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .error.show {
-            display: block;
-        }
-    </style>
+.notice {
+    font-size: 12px;
+    color: #666;
+    margin-top: 6px;
+}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>✂️ Лазерная резка</h1>
-        <p class="subtitle">Калькулятор стоимости резки</p>
+<div class="container">
 
-        <div class="input-group">
-            <label for="length">Длина реза</label>
-            <input type="number" id="length" placeholder="Например: 5" value="0" step="0.01" min="0">
-            <div class="unit">метры</div>
-            <div class="error" id="lengthError">Пожалуйста, введите корректное число</div>
-        </div>
+<h1>✂️ Лазерная резка</h1>
+<p class="subtitle">Калькулятор стоимости</p>
 
-        <div class="input-group">
-            <label for="material">Материал</label>
-            <div class="select-wrapper">
-                <select id="material" onchange="updateTariffs()">
-                    <option value="">Выберите материал...</option>
-                    <option value="birch_plywood_4">Берёзовая фанера 4 мм</option>
-                    <option value="birch_plywood_6">Берёзовая фанера 6 мм</option>
-                    <option value="falkate_3">Фальката 3 мм</option>
-                    <option value="falkate_5">Фальката 5 мм</option>
-                    <option value="acrylic_2_3">Оргстекло 2-3 мм</option>
-                    <option value="acrylic_6">Оргстекло 6 мм</option>
-                    <option value="pressboard_3">Пресскартон 3 мм</option>
-                    <option value="hdf_6">HDF 6 мм</option>
-                </select>
-            </div>
-            <div class="error" id="materialError">Пожалуйста, выберите материал</div>
-        </div>
+<div class="input-group">
+    <label>Длина реза</label>
+    <input type="number" id="length" value="0" step="0.01" min="0">
+    <div class="unit">метры</div>
+    <div class="error" id="lengthError">Введите длину реза</div>
+</div>
 
-        <div class="input-group">
-            <label for="tariff">Тариф</label>
-            <div class="select-wrapper">
-                <select id="tariff">
-                    <option value="">Сначала выберите материал</option>
-                </select>
-            </div>
-            <div class="error" id="tariffError">Пожалуйста, выберите тариф</div>
-        </div>
+<div class="input-group">
+    <label>Количество изделий</label>
+    <input type="number" id="quantity" value="1" min="1" step="1">
+    <div class="unit">шт</div>
+</div>
 
-        <div class="button-group">
-            <button class="calculate-btn" onclick="calculatePrice()">Рассчитать</button>
-            <button class="reset-btn" onclick="resetForm()">Сброс</button>
-        </div>
+<div class="input-group">
+    <label>Материал</label>
+    <select id="material" onchange="updateTariffs()">
+        <option value="">Выберите материал...</option>
+        <option value="birch_4">Берёзовая фанера 4 мм</option>
+        <option value="birch_6">Берёзовая фанера 6 мм</option>
+        <option value="falkata_3">Фальката 3 мм</option>
+        <op
 
-        <div class="result" id="result">
-            <div class="result-label">Итоговая стоимость:</div>
-            <div class="result-value"><span id="resultPrice">0</span> <span class="currency">€</span></div>
-        </div>
-    </div>
-
-    <script>
-        // Данные о материалах и тарифах (цена за метр реза в евро)
-        const materialsData = {
-            birch_plywood_4: {
-                name: 'Берёзовая фанера 4 мм',
-                tariffs: [
-                    { name: '1 изделие', pricePerMeter: 1.20 },
-                    { name: 'От 10 изделий', pricePerMeter: 1.00 },
-                    { name: 'От 30 изделий', pricePerMeter: 0.90 },
-                    { name: 'От 50 изделий', pricePerMeter: 0.70 },
-                ]
-            },
-            birch_plywood_6: {
-                name: 'Берёзовая фанера 6 мм',
-                tariffs: [
-                    { name: '1 изделие', pricePerMeter: 1.80 },
-                    { name: 'От 10 изделий', pricePerMeter: 1.70 },
-                    { name: 'От 30 изделий', pricePerMeter: 1.60 },
-                    { name: 'От 50 изделий', pricePerMeter: 1.25 },
-                ]
-            },
-            falkate_3: {
-                name: 'Фальката 3 мм',
-                tariffs: [
-                    { name: '1 изделие', pricePerMeter: 0.70 },
-                    { name: 'От 10 изделий', pricePerMeter: 0.60 },
-                    { name: 'От 30 изделий', pricePerMeter: 0.50 },
-                    { name: 'От 50 изделий', pricePerMeter: 0.40 },
-                ]
-            },
-            falkate_5: {
-                name: 'Фальката 5 мм',
-                tariffs: [
-                    { name: '1 изделие', pricePerMeter: 1.00 },
-                    { name: 'От 10 изделий', pricePerMeter: 0.90 },
-                    { name: 'От 30 изделий', pricePerMeter: 0.80 },
-                    { name: 'От 50 изделий', pricePerMeter: 0.60 },
-                ]
-            },
-            acrylic_2_3: {
-                name: 'Оргстекло 2-3 мм',
-                tariffs: [
-                    { name: '1 изделие', pricePerMeter: 4.00 },
-                    { name: 'От 10 изделий', pricePerMeter: 3.00 },
-                    { name: 'От 30 изделий', pricePerMeter: 2.50 },
-                    { name: 'От 50 изделий', pricePerMeter: 2.00 },
-                ]
-            },
-            acrylic_6: {
-                name: 'Оргстекло 6 мм',
-                tariffs: [
-                    { name: '1 изделие', pricePerMeter: 5.00 },
-                    { name: 'От 10 изделий', pricePerMeter: 4.00 },
-                    { name: 'От 30 изделий', pricePerMeter: 3.50 },
-                    { name: 'От 50 изделий', pricePerMeter: 2.50 },
-                ]
-            },
-            pressboard_3: {
-                name: 'Пресскартон 3 мм',
-                tariffs: [
-                    { name: '1 изделие', pricePerMeter: 0.70 },
-                    { name: 'От 10 изделий', pricePerMeter: 0.60 },
-                    { name: 'От 30 изделий', pricePerMeter: 0.50 },
-                    { name: 'От 50 изделий', pricePerMeter: 0.40 },
-                ]
-            },
-            hdf_6: {
-                name: 'HDF 6 мм',
-                tariffs: [
-                    { name: '1 изделие', pricePerMeter: 1.20 },
-                    { name: 'От 10 изделий', pricePerMeter: 1.00 },
-                    { name: 'От 30 изделий', pricePerMeter: 0.90 },
-                    { name: 'От 50 изделий', pricePerMeter: 0.70 },
-                ]
-            }
-        };
-
-        function updateTariffs() {
-            const selectedMaterial = document.getElementById('material').value;
-            const tariffSelect = document.getElementById('tariff');
-            const tariffError = document.getElementById('tariffError');
-            
-            tariffSelect.innerHTML = '';
-            tariffError.classList.remove('show');
-            
-            if (!selectedMaterial) {
-                tariffSelect.innerHTML = '<option value="">Сначала выберите материал</option>';
-                return;
-            }
-            
-            const material = materialsData[selectedMaterial];
-            if (material) {
-                // Добавляем вариант с минимальной ценой
-                const minPrice = Math.min(...material.tariffs.map(t => t.pricePerMeter));
-                const minTariff = material.tariffs.find(t => t.pricePerMeter === minPrice);
-                
-                const firstOption = document.createElement('option');
-                firstOption.value = '';
-                firstOption.textContent = 'Выберите тариф...';
-                tariffSelect.appendChild(firstOption);
-                
-                material.tariffs.forEach((tariff, index) => {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${tariff.name} - ${tariff.pricePerMeter} €/м`;
-                    tariffSelect.appendChild(option);
-                });
-                
-                // Добавляем вариант с минимальной ценой
-                const bestOption = document.createElement('option');
-                const bestIndex = material.tariffs.indexOf(minTariff);
-                bestOption.value = bestIndex;
-                bestOption.textContent = `⭐ Минимальная цена - ${minPrice} €/м (${minTariff.name})`;
-                bestOption.style.fontWeight = 'bold';
-                tariffSelect.appendChild(bestOption);
-            }
-        }
-
-        function calculatePrice() {
-            const length = parseFloat(document.getElementById('length').value) || 0;
-            const materialValue = document.getElementById('material').value;
-            const tariffValue = document.getElementById('tariff').value;
-
-            // Очищаем все ошибки
-            document.getElementById('lengthError').classList.remove('show');
-            document.getElementById('materialError').classList.remove('show');
-            document.getElementById('tariffError').classList.remove('show');
-
-            // Валидация
-            let hasError = false;
-
-            if (length <= 0) {
-                document.getElementById('lengthError').classList.add('show');
-                hasError = true;
-            }
-
-            if (!materialValue) {
-                document.getElementById('materialError').classList.add('show');
-                hasError = true;
-            }
-
-            if (tariffValue === '') {
-                document.getElementById('tariffError').classList.add('show');
-                hasError = true;
-            }
-
-            if (hasError) {
-                document.getElementById('result').classList.remove('show');
-                return;
-            }
-
-            // Расчёт
-            const material = materialsData[materialValue];
-            const tariffIndex = parseInt(tariffValue);
-            const tariff = material.tariffs[tariffIndex];
-            const pricePerMeter = tariff.pricePerMeter;
-            
-            const totalPrice = length * pricePerMeter;
-
-            document.getElementById('resultPrice').textContent = totalPrice.toFixed(2);
-            document.getElementById('result').classList.add('show');
-        }
-
-        function resetForm() {
-            document.getElementById('length').value = '0';
-            document.getElementById('material').value = '';
-            document.getElementById('tariff').innerHTML = '<option value="">Сначала выберите материал</option>';
-            document.getElementById('result').classList.remove('show');
-            
-            // Очищаем ошибки
-            document.getElementById('lengthError').classList.remove('show');
-            document.getElementById('materialError').classList.remove('show');
-            document.getElementById('tariffError').classList.remove('show');
-        }
-
-        // Позволяем рассчитать по Enter
-        document.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                calculatePrice();
-            }
-        });
-
-        // Реагирование на колёсико мышки для поля длины реза
-        document.getElementById('length').addEventListener('wheel', function(event) {
-            event.preventDefault();
-            
-            const currentValue = parseFloat(this.value) || 0;
-            const step = 0.01;
-            const direction = event.deltaY > 0 ? -1 : 1; // вверх увеличивает, вниз уменьшает
-            const newValue = Math.max(0, currentValue + (step * direction));
-            
-            this.value = newValue.toFixed(2);
-        });
-    </script>
-</body>
-</html>
+        
