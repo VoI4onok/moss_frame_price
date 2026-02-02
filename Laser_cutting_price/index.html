@@ -110,7 +110,7 @@ button {
 
 <div class="input-group">
     <label>Длина реза</label>
-    <input type="number" id="length" value="0" step="0.01" min="0">
+    <input type="number" id="length" value="0" step="0.1" min="0" onchange="this.value = this.value === '' ? '' : (Math.round(parseFloat(this.value) * 10) / 10)">
     <div class="unit">метры</div>
     <div class="error" id="lengthError">Введите длину реза</div>
 </div>
