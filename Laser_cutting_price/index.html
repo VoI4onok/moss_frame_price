@@ -188,6 +188,13 @@
         </div>
 
         <div class="input-group">
+            <label for="quantity">Количество изделий</label>
+            <input type="number" id="quantity" placeholder="Например: 10" value="1" step="1" min="1">
+            <div class="unit">шт</div>
+            <div class="error" id="quantityError">Пожалуйста, введите количество</div>
+        </div>
+
+        <div class="input-group">
             <label for="material">Материал</label>
             <div class="select-wrapper">
                 <select id="material" onchange="updateTariffs()">
@@ -232,84 +239,102 @@
             birch_plywood_4: {
                 name: 'Берёзовая фанера 4 мм',
                 tariffs: [
-                    { name: '100 изделий', pricePerMeter: 0.60 },
-                    { name: '50 изделий', pricePerMeter: 0.70 },
-                    { name: '30 изделий', pricePerMeter: 0.90 },
-                    { name: '10 изделий', pricePerMeter: 1.00 },
-                    { name: '1 изделие', pricePerMeter: 1.20 },
+                    { name: '100 изделий', minQty: 100, pricePerMeter: 0.60 },
+                    { name: '50 изделий', minQty: 50, pricePerMeter: 0.70 },
+                    { name: '30 изделий', minQty: 30, pricePerMeter: 0.90 },
+                    { name: '10 изделий', minQty: 10, pricePerMeter: 1.00 },
+                    { name: '1 изделие', minQty: 1, pricePerMeter: 1.20 },
                 ]
             },
             birch_plywood_6: {
                 name: 'Берёзовая фанера 6 мм',
                 tariffs: [
-                    { name: '100 изделий', pricePerMeter: 0.90 },
-                    { name: '50 изделий', pricePerMeter: 1.25 },
-                    { name: '30 изделий', pricePerMeter: 1.60 },
-                    { name: '10 изделий', pricePerMeter: 1.70 },
-                    { name: '1 изделие', pricePerMeter: 1.80 },
+                    { name: '100 изделий', minQty: 100, pricePerMeter: 0.90 },
+                    { name: '50 изделий', minQty: 50, pricePerMeter: 1.25 },
+                    { name: '30 изделий', minQty: 30, pricePerMeter: 1.60 },
+                    { name: '10 изделий', minQty: 10, pricePerMeter: 1.70 },
+                    { name: '1 изделие', minQty: 1, pricePerMeter: 1.80 },
                 ]
             },
             falkate_3: {
                 name: 'Фальката 3 мм',
                 tariffs: [
-                    { name: '100 изделий', pricePerMeter: 0.35 },
-                    { name: '50 изделий', pricePerMeter: 0.40 },
-                    { name: '30 изделий', pricePerMeter: 0.50 },
-                    { name: '10 изделий', pricePerMeter: 0.60 },
-                    { name: '1 изделие', pricePerMeter: 0.70 },
+                    { name: '100 изделий', minQty: 100, pricePerMeter: 0.35 },
+                    { name: '50 изделий', minQty: 50, pricePerMeter: 0.40 },
+                    { name: '30 изделий', minQty: 30, pricePerMeter: 0.50 },
+                    { name: '10 изделий', minQty: 10, pricePerMeter: 0.60 },
+                    { name: '1 изделие', minQty: 1, pricePerMeter: 0.70 },
                 ]
             },
             falkate_5: {
                 name: 'Фальката 5 мм',
                 tariffs: [
-                    { name: '100 изделий', pricePerMeter: 0.50 },
-                    { name: '50 изделий', pricePerMeter: 0.60 },
-                    { name: '30 изделий', pricePerMeter: 0.80 },
-                    { name: '10 изделий', pricePerMeter: 0.90 },
-                    { name: '1 изделие', pricePerMeter: 1.00 },
+                    { name: '100 изделий', minQty: 100, pricePerMeter: 0.50 },
+                    { name: '50 изделий', minQty: 50, pricePerMeter: 0.60 },
+                    { name: '30 изделий', minQty: 30, pricePerMeter: 0.80 },
+                    { name: '10 изделий', minQty: 10, pricePerMeter: 0.90 },
+                    { name: '1 изделие', minQty: 1, pricePerMeter: 1.00 },
                 ]
             },
             acrylic_2_3: {
                 name: 'Оргстекло 2-3 мм',
                 tariffs: [
-                    { name: '100 изделий', pricePerMeter: 0.60 },
-                    { name: '50 изделий', pricePerMeter: 2.00 },
-                    { name: '30 изделий', pricePerMeter: 2.50 },
-                    { name: '10 изделий', pricePerMeter: 3.00 },
-                    { name: '1 изделие', pricePerMeter: 4.00 },
+                    { name: '100 изделий', minQty: 100, pricePerMeter: 0.60 },
+                    { name: '50 изделий', minQty: 50, pricePerMeter: 2.00 },
+                    { name: '30 изделий', minQty: 30, pricePerMeter: 2.50 },
+                    { name: '10 изделий', minQty: 10, pricePerMeter: 3.00 },
+                    { name: '1 изделие', minQty: 1, pricePerMeter: 4.00 },
                 ]
             },
             acrylic_6: {
                 name: 'Оргстекло 6 мм',
                 tariffs: [
-                    { name: '100 изделий', pricePerMeter: 0.90 },
-                    { name: '50 изделий', pricePerMeter: 2.50 },
-                    { name: '30 изделий', pricePerMeter: 3.50 },
-                    { name: '10 изделий', pricePerMeter: 4.00 },
-                    { name: '1 изделие', pricePerMeter: 5.00 },
+                    { name: '100 изделий', minQty: 100, pricePerMeter: 0.90 },
+                    { name: '50 изделий', minQty: 50, pricePerMeter: 2.50 },
+                    { name: '30 изделий', minQty: 30, pricePerMeter: 3.50 },
+                    { name: '10 изделий', minQty: 10, pricePerMeter: 4.00 },
+                    { name: '1 изделие', minQty: 1, pricePerMeter: 5.00 },
                 ]
             },
             pressboard_3: {
                 name: 'Пресскартон 3 мм',
                 tariffs: [
-                    { name: '100 изделий', pricePerMeter: 0.35 },
-                    { name: '50 изделий', pricePerMeter: 0.40 },
-                    { name: '30 изделий', pricePerMeter: 0.50 },
-                    { name: '10 изделий', pricePerMeter: 0.60 },
-                    { name: '1 изделие', pricePerMeter: 0.70 },
+                    { name: '100 изделий', minQty: 100, pricePerMeter: 0.35 },
+                    { name: '50 изделий', minQty: 50, pricePerMeter: 0.40 },
+                    { name: '30 изделий', minQty: 30, pricePerMeter: 0.50 },
+                    { name: '10 изделий', minQty: 10, pricePerMeter: 0.60 },
+                    { name: '1 изделие', minQty: 1, pricePerMeter: 0.70 },
                 ]
             },
             hdf_6: {
                 name: 'HDF 6 мм',
                 tariffs: [
-                    { name: '100 изделий', pricePerMeter: 0.60 },
-                    { name: '50 изделий', pricePerMeter: 0.70 },
-                    { name: '30 изделий', pricePerMeter: 0.90 },
-                    { name: '10 изделий', pricePerMeter: 1.00 },
-                    { name: '1 изделие', pricePerMeter: 1.20 },
+                    { name: '100 изделий', minQty: 100, pricePerMeter: 0.60 },
+                    { name: '50 изделий', minQty: 50, pricePerMeter: 0.70 },
+                    { name: '30 изделий', minQty: 30, pricePerMeter: 0.90 },
+                    { name: '10 изделий', minQty: 10, pricePerMeter: 1.00 },
+                    { name: '1 изделие', minQty: 1, pricePerMeter: 1.20 },
                 ]
             }
         };
+
+        function selectTariffByQuantity() {
+            const materialValue = document.getElementById('material').value;
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+            const tariffSelect = document.getElementById('tariff');
+
+            if (!materialValue || isNaN(quantity) || quantity < 1) return;
+
+            const material = materialsData[materialValue];
+            if (!material) return;
+
+            let selectedIndex = material.tariffs.findIndex(t => quantity >= t.minQty);
+            if (selectedIndex === -1) {
+                selectedIndex = material.tariffs.length - 1;
+            }
+
+            tariffSelect.value = String(selectedIndex);
+        }
 
         function updateTariffs() {
             const selectedMaterial = document.getElementById('material').value;
@@ -326,10 +351,6 @@
             
             const material = materialsData[selectedMaterial];
             if (material) {
-                // Добавляем вариант с минимальной ценой
-                const minPrice = Math.min(...material.tariffs.map(t => t.pricePerMeter));
-                const minTariff = material.tariffs.find(t => t.pricePerMeter === minPrice);
-                
                 const firstOption = document.createElement('option');
                 firstOption.value = '';
                 firstOption.textContent = 'Выберите тариф...';
@@ -341,24 +362,20 @@
                     option.textContent = `${tariff.name} - ${tariff.pricePerMeter} €/м`;
                     tariffSelect.appendChild(option);
                 });
-                
-                // Добавляем вариант с минимальной ценой
-                const bestOption = document.createElement('option');
-                const bestIndex = material.tariffs.indexOf(minTariff);
-                bestOption.value = bestIndex;
-                bestOption.textContent = `⭐ Минимальная цена - ${minPrice} €/м (${minTariff.name})`;
-                bestOption.style.fontWeight = 'bold';
-                tariffSelect.appendChild(bestOption);
+
+                selectTariffByQuantity();
             }
         }
 
         function calculatePrice() {
             const length = parseFloat(document.getElementById('length').value) || 0;
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
             const materialValue = document.getElementById('material').value;
             const tariffValue = document.getElementById('tariff').value;
 
             // Очищаем все ошибки
             document.getElementById('lengthError').classList.remove('show');
+            document.getElementById('quantityError').classList.remove('show');
             document.getElementById('materialError').classList.remove('show');
             document.getElementById('tariffError').classList.remove('show');
 
@@ -367,6 +384,11 @@
 
             if (length <= 0) {
                 document.getElementById('lengthError').classList.add('show');
+                hasError = true;
+            }
+
+            if (isNaN(quantity) || quantity < 1) {
+                document.getElementById('quantityError').classList.add('show');
                 hasError = true;
             }
 
@@ -399,12 +421,14 @@
 
         function resetForm() {
             document.getElementById('length').value = '0';
+            document.getElementById('quantity').value = '1';
             document.getElementById('material').value = '';
             document.getElementById('tariff').innerHTML = '<option value="">Сначала выберите материал</option>';
             document.getElementById('result').classList.remove('show');
             
             // Очищаем ошибки
             document.getElementById('lengthError').classList.remove('show');
+            document.getElementById('quantityError').classList.remove('show');
             document.getElementById('materialError').classList.remove('show');
             document.getElementById('tariffError').classList.remove('show');
         }
@@ -434,6 +458,9 @@
             }
             this.value = clampRoundLength(parsed).toFixed(1);
         });
+
+        // Автоподбор тарифа по количеству изделий
+        document.getElementById('quantity').addEventListener('change', selectTariffByQuantity);
 
         // Реагирование на колёсико мышки для поля длины реза
         lengthInput.addEventListener('wheel', function(event) {
