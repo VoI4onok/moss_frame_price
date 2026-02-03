@@ -228,8 +228,10 @@
         </div>
 
         <div class="result" id="result">
-            <div class="result-label">Итоговая стоимость:</div>
+            <div class="result-label">Цена за 1 изделие:</div>
             <div class="result-value"><span id="resultPrice">0</span> <span class="currency">€</span></div>
+            <div class="result-label">Цена за все изделия:</div>
+            <div class="result-value"><span id="resultTotalPrice">0</span> <span class="currency">€</span></div>
         </div>
     </div>
 
@@ -413,9 +415,11 @@
             const tariff = material.tariffs[tariffIndex];
             const pricePerMeter = tariff.pricePerMeter;
             
-            const totalPrice = length * pricePerMeter;
+            const pricePerItem = length * pricePerMeter;
+            const totalPrice = pricePerItem * quantity;
 
-            document.getElementById('resultPrice').textContent = totalPrice.toFixed(2);
+            document.getElementById('resultPrice').textContent = pricePerItem.toFixed(2);
+            document.getElementById('resultTotalPrice').textContent = totalPrice.toFixed(2);
             document.getElementById('result').classList.add('show');
         }
 
@@ -425,6 +429,8 @@
             document.getElementById('material').value = '';
             document.getElementById('tariff').innerHTML = '<option value="">Сначала выберите материал</option>';
             document.getElementById('result').classList.remove('show');
+            document.getElementById('resultPrice').textContent = '0';
+            document.getElementById('resultTotalPrice').textContent = '0';
             
             // Очищаем ошибки
             document.getElementById('lengthError').classList.remove('show');
