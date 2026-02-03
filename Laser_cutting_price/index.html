@@ -462,6 +462,19 @@
         // Автоподбор тарифа по количеству изделий
         document.getElementById('quantity').addEventListener('change', selectTariffByQuantity);
 
+        // Реагирование на колёсико мышки для поля количества изделий
+        const quantityInput = document.getElementById('quantity');
+        quantityInput.addEventListener('wheel', function(event) {
+            event.preventDefault();
+
+            const currentValue = parseInt(this.value, 10) || 0;
+            const direction = event.deltaY > 0 ? -1 : 1; // вверх увеличивает, вниз уменьшает
+            const newValue = Math.max(1, currentValue + (1 * direction));
+
+            this.value = String(newValue);
+            selectTariffByQuantity();
+        });
+
         // Реагирование на колёсико мышки для поля длины реза
         lengthInput.addEventListener('wheel', function(event) {
             event.preventDefault();
