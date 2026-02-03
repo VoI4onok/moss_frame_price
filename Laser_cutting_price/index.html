@@ -439,7 +439,10 @@
             const tariff = material.tariffs[tariffIndex];
             const pricePerMeter = tariff.pricePerMeter;
             
-            const pricePerItem = length * pricePerMeter;
+            const engraveMinutes = parseClockToMinutes(document.getElementById('engraveTime').value);
+            const engravePricePerItem = (engraveMinutes / 60) * 30;
+
+            const pricePerItem = (length * pricePerMeter) + engravePricePerItem;
             const totalPrice = pricePerItem * quantity;
 
             document.getElementById('resultPrice').textContent = pricePerItem.toFixed(2);
