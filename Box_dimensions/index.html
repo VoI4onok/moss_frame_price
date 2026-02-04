@@ -236,6 +236,11 @@
         font-weight: 700;
         cursor: pointer;
       }
+      .palette-item .remove-btn {
+        background: transparent;
+        color: #ffffff;
+        border: 1px solid var(--line);
+      }
       .add-sheet-btn {
         background: #ffffff;
         color: #0b0b0b;
@@ -840,15 +845,16 @@
 
         const paletteHtml = Object.keys(requiredCount).map((type) => {
           const def = flatDefs.find((d) => d.type === type);
-          const remaining = Math.max(0, requiredCount[type] - (placedCount[type] || 0));
           return `
             <div class="palette-item" data-type="${type}">
               <div>
                 <div>${type}</div>
                 <div class="note">${formatValue(def.w)} × ${formatValue(def.h)} ${unitLabel()}</div>
-                <div class="note">Осталось: ${remaining}</div>
               </div>
-              <button data-add="${type}" ${remaining === 0 ? 'disabled' : ''}>+</button>
+              <div>
+                <button data-add="${type}">+</button>
+                <button class="remove-btn" data-remove="${type}">−</button>
+              </div>
             </div>
           `;
         }).join('');
@@ -884,6 +890,8 @@
         let dragSheetIndex = null;
         let dragStart = null;
         let lastValid = null;
+        let selectedId = null;
+        let selectedSheetIndex = null;
 
         function getPieceDims(p) {
           return { w: p.rot ? p.h : p.w, h: p.rot ? p.w : p.h };
@@ -985,6 +993,40 @@
           });
         }
 
+        function updatePieceDom(p) {
+          const svg = sheetsEls[p.sheetIndex];
+          if (!svg) return;
+          const scale = parseFloat(svg.dataset.scale);
+          const pad = parseFloat(svg.dataset.pad);
+          const dims = getPieceDims(p);
+          const x = pad + p.x * scale;
+          const y = pad + p.y * scale;
+          const w = Math.max(6, dims.w * scale);
+          const h = Math.max(6, dims.h * scale);
+          const g = svg.querySelector(`.piece[data-id="${p.id}"]`);
+          if (!g) return;
+          const rect = g.querySelector('.piece-rect');
+          const label = g.querySelector('.piece-label');
+          const handle = g.querySelector('.rotate-handle');
+          const handleText = g.querySelector('.rotate-text');
+          rect.setAttribute('x', x);
+          rect.setAttribute('y', y);
+          rect.setAttribute('width', w);
+          rect.setAttribute('height', h);
+          label.setAttribute('x', x + 6);
+          label.setAttribute('y', y + 16);
+          handle.setAttribute('x', x + w - 22);
+          handle.setAttribute('y', y + 4);
+          handleText.setAttribute('x', x + w - 13);
+          handleText.setAttribute('y', y + 17);
+        }
+
+        function clampToSheet(p) {
+          const dims = getPieceDims(p);
+          p.x = Math.min(Math.max(p.x, 0), sheet.w - dims.w);
+          p.y = Math.min(Math.max(p.y, 0), sheet.h - dims.h);
+        }
+
         function saveManual() {
           saveLayout(signature, {
             manual: {
@@ -1022,7 +1064,7 @@
           const sheetInfo = { w: sheet.w, h: sheet.h };
           const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === dragSheetIndex);
           applySnap(p, others, sheetInfo);
-          renderPieces();
+          updatePieceDom(p);
         }
 
         function onPointerUp() {
@@ -1035,7 +1077,7 @@
           p.x += edgeSnap((sheet.w - dims.w) - p.x);
           p.y += edgeSnap(0 - p.y);
           p.y += edgeSnap((sheet.h - dims.h) - p.y);
-          renderPieces();
+          updatePieceDom(p);
           dragId = null;
           dragSheetIndex = null;
           dragStart = null;
@@ -1053,9 +1095,12 @@
             const id = group.dataset.id;
             const p = piecesById.get(id);
             if (!p) return;
+            selectedId = id;
+            selectedSheetIndex = idx;
             if (target.classList.contains('rotate-handle') || target.classList.contains('rotate-text')) {
               p.rot = !p.rot;
-              renderPieces();
+              clampToSheet(p);
+              updatePieceDom(p);
               saveManual();
               return;
             }
@@ -1070,8 +1115,6 @@
             const type = btn.dataset.add;
             const def = flatDefs.find((d) => d.type === type);
             if (!def) return;
-            const remaining = requiredCount[type] - (placedCount[type] || 0) - Array.from(piecesById.values()).filter((p) => p.type === type).length;
-            if (remaining <= 0) return;
             const newPiece = {
               id: `m${nextId++}`,
               type,
@@ -1083,6 +1126,17 @@
               sheetIndex: 0,
             };
             piecesById.set(newPiece.id, newPiece);
+            saveManual();
+            calc();
+          });
+        });
+
+        document.querySelectorAll('[data-remove]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const type = btn.dataset.remove;
+            const toRemove = Array.from(piecesById.values()).find((p) => p.type === type);
+            if (!toRemove) return;
+            piecesById.delete(toRemove.id);
             saveManual();
             calc();
           });
@@ -1101,11 +1155,13 @@
           const key = e.key.toLowerCase();
           const isRotateKey = key === 'r' || key === 'к' || e.code === 'KeyR';
           if (!isRotateKey) return;
-          if (!dragId) return;
-          const p = piecesById.get(dragId);
+          const id = dragId || selectedId;
+          const p = id ? piecesById.get(id) : null;
           if (!p) return;
           p.rot = !p.rot;
-          renderPieces();
+          clampToSheet(p);
+          updatePieceDom(p);
+          saveManual();
         });
 
         renderPieces();
