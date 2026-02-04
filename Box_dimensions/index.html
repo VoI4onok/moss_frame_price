@@ -150,6 +150,50 @@
       a.link-badge:hover {
         background: #f0f0f0;
       }
+      .tip {
+        position: relative;
+        cursor: help;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.35);
+      }
+      .tip::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 0;
+        bottom: calc(100% + 8px);
+        background: #ffffff;
+        color: #0b0b0b;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(4px);
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+        border: 1px solid #e6e6e6;
+        z-index: 3;
+      }
+      .tip::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        bottom: calc(100% + 2px);
+        width: 8px;
+        height: 8px;
+        background: #ffffff;
+        border-left: 1px solid #e6e6e6;
+        border-top: 1px solid #e6e6e6;
+        transform: rotate(45deg);
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        z-index: 2;
+      }
+      .tip:hover::after,
+      .tip:hover::before {
+        opacity: 1;
+        transform: translateY(0);
+      }
       .pill {
         display: inline-block;
         background: rgba(255, 255, 255, 0.12);
@@ -473,19 +517,20 @@
         const lidRailShort = lidT - (2 * railW); // 6 шт
 
         const railItems = [
-          { len: faceRailLong, count: 4 },
-          { len: faceRailShort, count: 6 },
-          { len: sideRailLong, count: 4 },
-          { len: sideRailShort, count: 6 },
-          { len: lidRailLong, count: 4 },
-          { len: lidRailShort, count: 6 },
+          { len: faceRailLong, count: 4, side: 'Фасад' },
+          { len: faceRailShort, count: 6, side: 'Фасад' },
+          { len: sideRailLong, count: 4, side: 'Бок' },
+          { len: sideRailShort, count: 6, side: 'Бок' },
+          { len: lidRailLong, count: 4, side: 'Крышка' },
+          { len: lidRailShort, count: 6, side: 'Крышка' },
         ];
 
         const grouped = new Map();
         railItems.forEach((item) => {
           const key = roundTo(item.len, 4);
-          const prev = grouped.get(key) || { len: item.len, count: 0 };
+          const prev = grouped.get(key) || { len: item.len, count: 0, bySide: {} };
           prev.count += item.count;
+          prev.bySide[item.side] = (prev.bySide[item.side] || 0) + item.count;
           grouped.set(key, prev);
         });
 
@@ -494,7 +539,11 @@
         const slatsRows = groupedList.map((item) => {
           const base = `${formatValue(item.len)} ${unitLabel()}`;
           const adjusted = railSubtractMm > 0 ? ` (${formatValue(item.len - railSubtractM)} ${unitLabel()})` : '';
-          return `<tr><td>${base}${adjusted}</td><td>${item.count}</td></tr>`;
+          const tooltipParts = Object.entries(item.bySide)
+            .filter(([, cnt]) => cnt > 0)
+            .map(([side, cnt]) => `${side}: ${cnt}`);
+          const tooltip = tooltipParts.join(', ');
+          return `<tr><td><span class="tip" data-tip="${tooltip}">${base}${adjusted}</span></td><td>${item.count}</td></tr>`;
         }).join('');
 
         const slatsHtml = `

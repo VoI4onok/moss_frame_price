@@ -527,6 +527,46 @@
             document.getElementById('quantityError').classList.remove('show');
             document.getElementById('materialError').classList.remove('show');
             document.getElementById('tariffError').classList.remove('show');
+            localStorage.removeItem('laserCalcState');
+        }
+
+        function saveFormState() {
+            const state = {
+                length: document.getElementById('length').value,
+                engraveTime: document.getElementById('engraveTime').value,
+                engraveMinutes: document.getElementById('engraveTime').dataset.minutes || '0',
+                materialLength: document.getElementById('materialLength').value,
+                materialWidth: document.getElementById('materialWidth').value,
+                quantity: document.getElementById('quantity').value,
+                material: document.getElementById('material').value,
+                tariff: document.getElementById('tariff').value
+            };
+            localStorage.setItem('laserCalcState', JSON.stringify(state));
+        }
+
+        function loadFormState() {
+            const raw = localStorage.getItem('laserCalcState');
+            if (!raw) return;
+            let state;
+            try {
+                state = JSON.parse(raw);
+            } catch (e) {
+                return;
+            }
+            if (!state) return;
+
+            document.getElementById('length').value = state.length ?? '0';
+            document.getElementById('materialLength').value = state.materialLength ?? '0';
+            document.getElementById('materialWidth').value = state.materialWidth ?? '0';
+            document.getElementById('engraveTime').value = state.engraveTime ?? '00:00';
+            document.getElementById('engraveTime').dataset.minutes = state.engraveMinutes ?? '0';
+            document.getElementById('quantity').value = state.quantity ?? '1';
+            document.getElementById('material').value = state.material ?? '';
+
+            updateTariffs();
+            if (state.tariff !== undefined && state.tariff !== null && state.tariff !== '') {
+                document.getElementById('tariff').value = state.tariff;
+            }
         }
 
         // Позволяем рассчитать по Enter
@@ -534,6 +574,27 @@
             if (event.key === 'Enter') {
                 calculatePrice();
             }
+        });
+
+        // Сохраняем значения при изменениях
+        [
+            'length',
+            'engraveTime',
+            'materialLength',
+            'materialWidth',
+            'quantity',
+            'material',
+            'tariff'
+        ].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', saveFormState);
+            el.addEventListener('change', saveFormState);
+        });
+
+        // Восстанавливаем значения при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFormState();
         });
 
         const lengthStep = 0.1;
