@@ -289,26 +289,35 @@
             <button class="reset-btn" onclick="resetForm()">Сброс</button>
         </div>
 
-        <div class="result" id="result">
-            <div class="result-columns">
-                <div class="result-column">
-                    <div class="result-title">Общая сумма:</div>
-                    <div class="result-value"><span id="resultTotalPrice">0</span> <span class="currency">€</span></div>
+    <div class="result" id="result">
+        <div class="result-columns">
+            <div class="result-column">
+                <div class="result-title">Общая сумма:</div>
+                <div class="result-value"><span id="resultTotalPrice">0</span> <span class="currency">€</span></div>
                     <div class="result-sub">Площадь: <span id="resultAreaTotal">0</span> м²</div>
                     <div class="result-sub">Резка: <span id="resultCuttingPrice">0</span> €</div>
                     <div class="result-sub">Гравировка: <span id="resultEngravePrice">0</span> €</div>
-                    <div class="result-sub">Материал: <span id="resultMaterialPrice">0</span> €</div>
-                </div>
-                <div class="result-column">
-                    <div class="result-title">Сумма за 1 изделие:</div>
-                    <div class="result-value"><span id="resultPricePerItem">0</span> <span class="currency">€</span></div>
+                <div class="result-sub">Материал: <span id="resultMaterialPrice">0</span> €</div>
+            </div>
+            <div class="result-column">
+                <div class="result-title">Сумма за 1 изделие:</div>
+                <div class="result-value"><span id="resultPricePerItem">0</span> <span class="currency">€</span></div>
                     <div class="result-sub">Площадь: <span id="resultAreaPerItem">0</span> м²</div>
                     <div class="result-sub">Резка: <span id="resultCuttingPricePerItem">0</span> €</div>
                     <div class="result-sub">Гравировка: <span id="resultEngravePricePerItem">0</span> €</div>
-                    <div class="result-sub">Материал: <span id="resultMaterialPricePerItem">0</span> €</div>
-                </div>
+                <div class="result-sub">Материал: <span id="resultMaterialPricePerItem">0</span> €</div>
             </div>
         </div>
+    </div>
+
+    <div class="notice">
+        <strong>Пояснения по расчёту:</strong>
+        <br>Резка: длина реза × тариф (€/м).
+        <br>Гравировка: (минуты / 60) × 30 € за изделие.
+        <br>Материал: (длина × ширина в мм → м²) × 1.1 × цена материала (€/м²).
+        <br>Итог за 1 изделие: резка + гравировка + материал.
+        <br>Общая сумма: итог за 1 изделие × количество.
+    </div>
     </div>
 
     <script>
