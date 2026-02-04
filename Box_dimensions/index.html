@@ -203,7 +203,7 @@
       }
       .layout {
         display: grid;
-        grid-template-columns: 1.4fr 0.6fr;
+        grid-template-columns: 1fr;
         gap: 16px;
         align-items: start;
       }
@@ -864,14 +864,14 @@
 
         const layoutHtml = `
           <div class="layout">
+            <div class="palette-column">
+              <div class="pill">Детали</div>
+              ${paletteHtml}
+            </div>
             <div class="sheet-column">
               ${sheetsHtml}
               <button class="add-sheet-btn" id="addSheetBtn">+ Добавить лист</button>
               ${facadeSplitUsed ? `<div class="note">Фасады разделены на ${facadeSplitCount} части по длине для раскроя.</div>` : ''}
-            </div>
-            <div class="palette-column">
-              <div class="pill">Детали</div>
-              ${paletteHtml}
             </div>
           </div>
         `;
