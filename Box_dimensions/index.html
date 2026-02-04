@@ -137,14 +137,17 @@
             <div>
               <label for="length">Длина (м)</label>
               <input id="length" type="number" min="0.01" step="0.01" value="0.6" />
+              <p class="note">Это сторона «Лицо» и «Крышка». Используется как L.</p>
             </div>
             <div>
               <label for="height">Высота (м)</label>
               <input id="height" type="number" min="0.01" step="0.01" value="0.4" />
+              <p class="note">Это сторона «Лицо» и «Бок». Используется как H.</p>
             </div>
             <div>
               <label for="thickness">Толщина (м)</label>
               <input id="thickness" type="number" min="0.001" step="0.001" value="0.04" />
+              <p class="note">Это сторона «Бок» и «Крышка». Используется как T.</p>
             </div>
           </div>
 
@@ -152,6 +155,7 @@
             <input id="foam" type="checkbox" />
             <label for="foam">Добавить пенопласт (+0.04 м по длине/высоте/толщине)</label>
           </div>
+          <p class="note">Если включено, L, H и T увеличиваются на 0.04 м.</p>
 
           <button class="btn" id="calc">Рассчитать</button>
           <button class="btn secondary" id="reset">Сбросить</button>
@@ -168,14 +172,17 @@
                 <option value="0.006">0.006 м (6 мм)</option>
                 <option value="0.01">0.010 м (10 мм)</option>
               </select>
+              <p class="note">Добавляется по 2 стороны там, где указано «+ фанера».</p>
             </div>
             <div>
               <label for="sheetW">Лист фанеры, ширина (м)</label>
               <input id="sheetW" type="number" min="0.1" step="0.01" value="1.25" />
+              <p class="note">Пока справочно, раскладку по листу не считаем.</p>
             </div>
             <div>
               <label for="sheetL">Лист фанеры, длина (м)</label>
               <input id="sheetL" type="number" min="0.1" step="0.01" value="2.5" />
+              <p class="note">Пока справочно, раскладку по листу не считаем.</p>
             </div>
           </div>
           <p class="note">Рейки: сечение 0.015 × 0.03 м. Для расчёта длины вычитаем ширину 0.03 м.</p>
@@ -186,10 +193,12 @@
         <section class="card">
           <h2>Фанера (раскрой деталей)</h2>
           <div id="plywoodResult"></div>
+          <p class="note">Лицо = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера) × (T + 2*рейка).</p>
         </section>
         <section class="card">
           <h2>Рейки (длины)</h2>
           <div id="slatsResult"></div>
+          <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×0.03 м.</p>
         </section>
       </div>
     </main>
