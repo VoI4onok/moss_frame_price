@@ -279,7 +279,7 @@
         <section class="card">
           <h2>Фанера (раскрой деталей)</h2>
           <div id="plywoodResult"></div>
-          <p class="note">Лицо = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
+          <p class="note">Фасад = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
         </section>
         <section class="card">
           <h2>Рейки (длины)</h2>
@@ -305,7 +305,7 @@
           <h2>Пояснения (можно раскрыть)</h2>
           <details class="help">
             <summary>Размеры картины</summary>
-            <p class="note">Длина — сторона «Лицо» и «Крышка» (L). Высота — сторона «Лицо» и «Бок» (H). Толщина — сторона «Бок» и «Крышка» (T).</p>
+            <p class="note">Длина — сторона «Фасад» и «Крышка» (L). Высота — сторона «Фасад» и «Бок» (H). Толщина — сторона «Бок» и «Крышка» (T).</p>
           </details>
           <details class="help">
             <summary>Единицы измерения</summary>
@@ -331,7 +331,7 @@
           </details>
           <details class="help">
             <summary>Формулы</summary>
-            <p class="note">Лицо = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
+            <p class="note">Фасад = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
             <p class="note">Блок «Формулы с подстановкой» показывает промежуточные значения L', H', T' и итоговые размеры деталей.</p>
           </details>
         </section>
@@ -436,7 +436,7 @@
         const H = height + foamAdd;
         const T = thickness + foamAdd;
 
-        // Лицо: (L,H) + фанера по 4 сторонам + рейка по 4 сторонам
+        // Фасад: (L,H) + фанера по 4 сторонам + рейка по 4 сторонам
         const faceL = L + (2 * plyM) + (2 * railThk);
         const faceH = H + (2 * plyM) + (2 * railThk);
 
@@ -454,7 +454,7 @@
               <tr><th>Деталь</th><th>Размер (см)</th><th>Кол-во</th></tr>
             </thead>
             <tbody>
-              <tr><td>Лицо</td><td>${formatValue(faceL)} × ${formatValue(faceH)} ${unitLabel()}</td><td>2</td></tr>
+              <tr><td>Фасад</td><td>${formatValue(faceL)} × ${formatValue(faceH)} ${unitLabel()}</td><td>2</td></tr>
               <tr><td>Бок</td><td>${formatValue(sideH)} × ${formatValue(sideT)} ${unitLabel()}</td><td>2</td></tr>
               <tr><td>Крышка</td><td>${formatValue(lidL)} × ${formatValue(lidT)} ${unitLabel()}</td><td>2</td></tr>
             </tbody>
@@ -472,18 +472,38 @@
         const lidRailLong = lidL; // 4 шт
         const lidRailShort = lidT - (2 * railW); // 6 шт
 
+        const railItems = [
+          { len: faceRailLong, count: 4 },
+          { len: faceRailShort, count: 6 },
+          { len: sideRailLong, count: 4 },
+          { len: sideRailShort, count: 6 },
+          { len: lidRailLong, count: 4 },
+          { len: lidRailShort, count: 6 },
+        ];
+
+        const grouped = new Map();
+        railItems.forEach((item) => {
+          const key = roundTo(item.len, 4);
+          const prev = grouped.get(key) || { len: item.len, count: 0 };
+          prev.count += item.count;
+          grouped.set(key, prev);
+        });
+
+        const groupedList = Array.from(grouped.values()).sort((a, b) => b.len - a.len);
+
+        const slatsRows = groupedList.map((item) => {
+          const base = `${formatValue(item.len)} ${unitLabel()}`;
+          const adjusted = railSubtractMm > 0 ? ` (${formatValue(item.len - railSubtractM)} ${unitLabel()})` : '';
+          return `<tr><td>${base}${adjusted}</td><td>${item.count}</td></tr>`;
+        }).join('');
+
         const slatsHtml = `
           <table>
             <thead>
-              <tr><th>Сторона</th><th>Длина рейки (см)</th><th>Кол-во</th></tr>
+              <tr><th>Длина рейки</th><th>Кол-во</th></tr>
             </thead>
             <tbody>
-              <tr><td>Лицо</td><td>${formatValue(faceRailLong)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(faceRailLong - railSubtractM)} ${unitLabel()})` : ''}</td><td>4</td></tr>
-              <tr><td>Лицо</td><td>${formatValue(faceRailShort)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(faceRailShort - railSubtractM)} ${unitLabel()})` : ''}</td><td>6</td></tr>
-              <tr><td>Бок</td><td>${formatValue(sideRailLong)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(sideRailLong - railSubtractM)} ${unitLabel()})` : ''}</td><td>4</td></tr>
-              <tr><td>Бок</td><td>${formatValue(sideRailShort)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(sideRailShort - railSubtractM)} ${unitLabel()})` : ''}</td><td>6</td></tr>
-              <tr><td>Крышка</td><td>${formatValue(lidRailLong)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(lidRailLong - railSubtractM)} ${unitLabel()})` : ''}</td><td>4</td></tr>
-              <tr><td>Крышка</td><td>${formatValue(lidRailShort)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(lidRailShort - railSubtractM)} ${unitLabel()})` : ''}</td><td>6</td></tr>
+              ${slatsRows}
             </tbody>
           </table>
         `;
@@ -515,12 +535,12 @@
                 <td>${formatValue(T)} ${unitLabel()}</td>
               </tr>
               <tr>
-                <td>Лицо (длина)</td>
+                <td>Фасад (длина)</td>
                 <td>FaceL = L' + 2*P + 2*R</td>
                 <td>${formatValue(faceL)} ${unitLabel()}</td>
               </tr>
               <tr>
-                <td>Лицо (высота)</td>
+                <td>Фасад (высота)</td>
                 <td>FaceH = H' + 2*P + 2*R</td>
                 <td>${formatValue(faceH)} ${unitLabel()}</td>
               </tr>
@@ -545,7 +565,7 @@
                 <td>${formatValue(lidT)} ${unitLabel()}</td>
               </tr>
               <tr>
-                <td>Рейки Лицо (короткие)</td>
+                <td>Рейки Фасад (короткие)</td>
                 <td>FaceShort = FaceH - 2*RW</td>
                 <td>${formatValue(faceRailShort)} ${unitLabel()}</td>
               </tr>
