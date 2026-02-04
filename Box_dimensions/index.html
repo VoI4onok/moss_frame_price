@@ -842,8 +842,8 @@
               <g class="piece" data-id="${p.id}" data-sheet="${idx}">
                 <rect class="piece-rect" x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.06)" stroke="#4ad4ff" stroke-dasharray="6 4" stroke-width="1.5"/>
                 <text class="piece-label" x="${x + 6}" y="${y + 16}" fill="#eaf7ff" font-size="11">${label}</text>
-                <rect class="rotate-handle" x="${x + w - 16}" y="${y + 4}" width="12" height="12" fill="rgba(255,255,255,0.85)" stroke="#0b0b0b" stroke-width="0.5"/>
-                <text class="rotate-text" x="${x + w - 10}" y="${y + 13}" fill="#0b0b0b" font-size="9" text-anchor="middle">R</text>
+                <rect class="rotate-handle" x="${x + w - 22}" y="${y + 4}" width="18" height="18" fill="rgba(255,255,255,0.92)" stroke="#0b0b0b" stroke-width="0.8"/>
+                <text class="rotate-text" x="${x + w - 13}" y="${y + 17}" fill="#0b0b0b" font-size="11" text-anchor="middle">R</text>
               </g>
             `;
           }).join('');
@@ -872,6 +872,8 @@
               piecesById.set(p.id, { ...p, sheetIndex: sIdx });
             });
           });
+          let selectedId = null;
+          let selectedSheetIndex = null;
 
           function getPieceDims(p) {
             return { w: p.rot ? p.h : p.w, h: p.rot ? p.w : p.h };
@@ -939,10 +941,25 @@
             rect.setAttribute('height', h);
             label.setAttribute('x', x + 6);
             label.setAttribute('y', y + 16);
-            handle.setAttribute('x', x + w - 16);
+            handle.setAttribute('x', x + w - 22);
             handle.setAttribute('y', y + 4);
-            handleText.setAttribute('x', x + w - 10);
-            handleText.setAttribute('y', y + 13);
+            handle.setAttribute('width', 18);
+            handle.setAttribute('height', 18);
+            handleText.setAttribute('x', x + w - 13);
+            handleText.setAttribute('y', y + 17);
+          }
+
+          function rotateSelected(p, sheetIndex, svg) {
+            const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === sheetIndex);
+            p.rot = !p.rot;
+            const isOverlap = others.some((o) => overlaps(p, o));
+            if (isOverlap) {
+              p.rot = !p.rot;
+            }
+            updatePieceDom(p, svg);
+            saveLayout(signature, sheets.map((s, sIdx) => ({
+              placements: Array.from(piecesById.values()).filter((pp) => pp.sheetIndex === sIdx),
+            })));
           }
 
           sheetSvgsEls.forEach((svg) => {
@@ -1005,18 +1022,11 @@
               const id = group.dataset.id;
               const p = piecesById.get(id);
               if (!p) return;
+              selectedId = id;
+              selectedSheetIndex = sheetIndex;
 
               if (target.classList.contains('rotate-handle') || target.classList.contains('rotate-text')) {
-                p.rot = !p.rot;
-                const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === sheetIndex);
-                const isOverlap = others.some((o) => overlaps(p, o));
-                if (isOverlap) {
-                  p.rot = !p.rot;
-                }
-                updatePieceDom(p, svg);
-                saveLayout(signature, sheets.map((s, sIdx) => ({
-                  placements: Array.from(piecesById.values()).filter((pp) => pp.sheetIndex === sIdx),
-                })));
+                rotateSelected(p, sheetIndex, svg);
                 return;
               }
 
@@ -1030,6 +1040,18 @@
               window.addEventListener('pointermove', onPointerMove);
               window.addEventListener('pointerup', onPointerUp);
             });
+          });
+
+          window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() !== 'r') return;
+            const tag = document.activeElement?.tagName?.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+            if (!selectedId || selectedSheetIndex === null) return;
+            const p = piecesById.get(selectedId);
+            if (!p) return;
+            const svg = document.querySelector(`.sheet-svg[data-sheet="${selectedSheetIndex}"]`);
+            if (!svg) return;
+            rotateSelected(p, selectedSheetIndex, svg);
           });
         }
 
