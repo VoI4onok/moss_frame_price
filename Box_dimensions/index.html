@@ -206,6 +206,11 @@
         font-size: 13px;
         color: var(--muted);
       }
+      .total {
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+      }
       details.help {
         margin-top: 8px;
         border: 1px dashed var(--line);
@@ -558,7 +563,7 @@
           <p class="note">Площадь фанеры: ${roundTo(totalPlywoodArea, 3)} м². С отходами (10%): ${roundTo(plywoodAreaWithWaste, 3)} м².</p>
           <p class="note">Стоимость фанеры: ${roundTo(plywoodCost, 2)} € (${roundTo(plywoodPricePerM2, 2)} €/м²).</p>
           <p class="note">Рейки: ${roundTo(railTotalLength, 2)} м. С отходами (10%): ${roundTo(railLengthWithWaste, 2)} м. Стоимость: ${roundTo(railCost, 2)} €.</p>
-          <p class="note">Итого материалы: ${roundTo(plywoodCost + railCost, 2)} €.</p>
+          <p class="total">Итого материалы: ${roundTo(plywoodCost + railCost, 2)} €.</p>
         `;
 
         const railItems = [
@@ -707,63 +712,73 @@
           }
         });
 
-        // Simple shelf packing: sort by height desc
+        // Simple shelf packing across multiple sheets
         flatItems.sort((a, b) => b.h - a.h);
 
-        const placements = [];
-        let cursorX = 0;
-        let cursorY = 0;
-        let shelfH = 0;
-        let fits = true;
+        const sheets = [];
+        let current = { placements: [], cursorX: 0, cursorY: 0, shelfH: 0 };
 
+        function newSheet() {
+          if (current.placements.length) sheets.push(current);
+          current = { placements: [], cursorX: 0, cursorY: 0, shelfH: 0 };
+        }
+
+        let allFit = true;
         flatItems.forEach((it) => {
           if (it.w > sheet.w || it.h > sheet.h) {
-            fits = false;
+            allFit = false;
             return;
           }
-          if (cursorX + it.w > sheet.w) {
-            cursorX = 0;
-            cursorY += shelfH;
-            shelfH = 0;
+          if (current.cursorX + it.w > sheet.w) {
+            current.cursorX = 0;
+            current.cursorY += current.shelfH;
+            current.shelfH = 0;
           }
-          if (cursorY + it.h > sheet.h) {
-            fits = false;
+          if (current.cursorY + it.h > sheet.h) {
+            newSheet();
+          }
+          if (current.cursorY + it.h > sheet.h) {
+            allFit = false;
             return;
           }
-          placements.push({ ...it, x: cursorX, y: cursorY });
-          cursorX += it.w;
-          shelfH = Math.max(shelfH, it.h);
+          current.placements.push({ ...it, x: current.cursorX, y: current.cursorY });
+          current.cursorX += it.w;
+          current.shelfH = Math.max(current.shelfH, it.h);
         });
+        if (current.placements.length) sheets.push(current);
 
         const sheetPreviewW = 720;
         const sheetPad = 8;
         const sheetScale = sheet.w > 0 ? (sheetPreviewW - sheetPad * 2) / sheet.w : 1;
         const sheetPreviewH = sheet.h * sheetScale + sheetPad * 2;
 
-        const cutLines = placements.map((p) => {
-          const x = sheetPad + p.x * sheetScale;
-          const y = sheetPad + p.y * sheetScale;
-          const w = p.w * sheetScale;
-          const h = p.h * sheetScale;
-          const label = `${p.name} ${formatValue(p.w)}×${formatValue(p.h)} ${unitLabel()}`;
+        const sheetSvgs = sheets.map((s, idx) => {
+          const cutLines = s.placements.map((p) => {
+            const x = sheetPad + p.x * sheetScale;
+            const y = sheetPad + p.y * sheetScale;
+            const w = p.w * sheetScale;
+            const h = p.h * sheetScale;
+            const label = `${p.name} ${formatValue(p.w)}×${formatValue(p.h)} ${unitLabel()}`;
+            return `
+              <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.06)" stroke="#4ad4ff" stroke-dasharray="6 4" stroke-width="1.5"/>
+              <text x="${x + 6}" y="${y + 16}" fill="#eaf7ff" font-size="11">${label}</text>
+            `;
+          }).join('');
+
           return `
-            <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.06)" stroke="#4ad4ff" stroke-dasharray="6 4" stroke-width="1.5"/>
-            <text x="${x + 6}" y="${y + 16}" fill="#eaf7ff" font-size="11">${label}</text>
+            <div class="pill" style="margin-top: 8px;">Лист ${idx + 1}</div>
+            <svg viewBox="0 0 ${sheetPreviewW} ${sheetPreviewH}" width="100%" height="${sheetPreviewH}" aria-label="Раскрой фанеры">
+              <rect x="${sheetPad}" y="${sheetPad}" width="${sheet.w * sheetScale}" height="${sheet.h * sheetScale}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.4)"/>
+              ${cutLines}
+            </svg>
           `;
         }).join('');
 
-        const sheetSvg = `
-          <svg viewBox="0 0 ${sheetPreviewW} ${sheetPreviewH}" width="100%" height="${sheetPreviewH}" aria-label="Раскрой фанеры">
-            <rect x="${sheetPad}" y="${sheetPad}" width="${sheet.w * sheetScale}" height="${sheet.h * sheetScale}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.4)"/>
-            ${cutLines}
-          </svg>
-        `;
-
-        const sheetNote = fits
+        const sheetNote = allFit
           ? (facadeSplit ? '<div class="note">Фасады разделены пополам по длине для раскроя.</div>' : '')
-          : '<div class="warn">В один лист не помещается. Увеличьте размер листа или используйте несколько.</div>';
+          : '<div class="warn">Некоторые детали не помещаются даже при раскрое на несколько листов.</div>';
 
-        el('sheetCutPreview').innerHTML = sheetSvg + sheetNote;
+        el('sheetCutPreview').innerHTML = sheetSvgs + sheetNote;
 
         const warnings = [];
         if (faceRailShort <= 0 || sideRailShort <= 0 || lidRailShort <= 0) {
