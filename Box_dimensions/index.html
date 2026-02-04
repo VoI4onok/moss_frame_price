@@ -335,6 +335,7 @@
             </div>
           </div>
           <div id="slatsResult"></div>
+          <div id="slatsPreview" style="margin-top: 12px;"></div>
         </section>
       </div>
 
@@ -639,17 +640,50 @@
         el('slatsResult').innerHTML = slatsHtml;
         el('formulaResult').innerHTML = formulaHtml;
 
+        const slatPreviewW = 720;
+        const slatPad = 10;
+        const slatGap = 10;
+        const maxRailLen = groupedList.length ? groupedList[0].len : 1;
+        const slatScale = maxRailLen > 0 ? (slatPreviewW - slatPad * 2) / maxRailLen : 1;
+        let sy = slatPad;
+        const slatRects = groupedList.map((item) => {
+          const w = Math.max(2, item.len * slatScale);
+          const h = 18;
+          const x = slatPad;
+          const y = sy;
+          const label = `${formatValue(item.len)} ${unitLabel()} × ${item.count}`;
+          const tooltipParts = Object.entries(item.bySide || {})
+            .filter(([, cnt]) => cnt > 0)
+            .map(([side, cnt]) => `${side}: ${cnt}`);
+          const tooltip = tooltipParts.join(', ');
+          const rect = `
+            <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.4)"/>
+            <text x="${x + 6}" y="${y + 12}" fill="#f5f5f5" font-size="11">${label}</text>
+            <title>${tooltip}</title>
+          `;
+          sy += h + slatGap;
+          return rect;
+        }).join('');
+
+        const slatSvgH = sy + slatPad - slatGap;
+        const slatsSvg = `
+          <svg viewBox="0 0 ${slatPreviewW} ${slatSvgH}" width="100%" height="${slatSvgH}" aria-label="Эскиз реек">
+            ${slatRects}
+          </svg>
+        `;
+        el('slatsPreview').innerHTML = slatsSvg;
+
         const parts = [
           { name: 'Фасад', w: faceL, h: faceH },
           { name: 'Бок', w: sideT, h: sideH },
           { name: 'Крышка', w: lidL, h: lidT },
         ].map((p) => (p.h > p.w ? { ...p, w: p.h, h: p.w } : p));
 
-        const previewW = 700;
+        const previewW = 720;
         const rowGap = 14;
         const pad = 10;
         const maxPartW = Math.max(...parts.map((p) => p.w));
-        const scale = maxPartW > 0 ? (previewW - pad * 2) / maxPartW * 0.5 : 1;
+        const scale = maxPartW > 0 ? (previewW - pad * 2) / maxPartW : 1;
 
         let y = pad;
         const rects = parts.map((p) => {
