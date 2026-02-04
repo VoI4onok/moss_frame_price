@@ -153,26 +153,14 @@
             <div>
               <label for="length">Длина (м)</label>
               <input id="length" type="number" min="0.01" step="0.01" value="0.6" />
-              <details class="help">
-                <summary>Пояснение</summary>
-                <p class="note">Это сторона «Лицо» и «Крышка». Используется как L.</p>
-              </details>
             </div>
             <div>
               <label for="height">Высота (м)</label>
               <input id="height" type="number" min="0.01" step="0.01" value="0.4" />
-              <details class="help">
-                <summary>Пояснение</summary>
-                <p class="note">Это сторона «Лицо» и «Бок». Используется как H.</p>
-              </details>
             </div>
             <div>
               <label for="thickness">Толщина (м)</label>
               <input id="thickness" type="number" min="0.001" step="0.001" value="0.04" />
-              <details class="help">
-                <summary>Пояснение</summary>
-                <p class="note">Это сторона «Бок» и «Крышка». Используется как T.</p>
-              </details>
             </div>
             <div>
               <label for="unit">Единицы измерения</label>
@@ -181,10 +169,6 @@
                 <option value="cm">Сантиметры</option>
                 <option value="mm">Миллиметры</option>
               </select>
-              <details class="help">
-                <summary>Пояснение</summary>
-                <p class="note">Переключает все поля и результаты.</p>
-              </details>
             </div>
           </div>
 
@@ -192,10 +176,6 @@
             <input id="foam" type="checkbox" />
             <label for="foam">Добавить пенопласт (+<span id="foamAddLabel">0.04</span> <span class="unitLabel">м</span> по длине/высоте/толщине)</label>
           </div>
-          <details class="help">
-            <summary>Пояснение</summary>
-            <p class="note">Если включено, L, H и T увеличиваются на <span id="foamAddNote">0.04</span> <span class="unitLabel">м</span>.</p>
-          </details>
 
           <button class="btn" id="calc">Рассчитать</button>
           <button class="btn secondary" id="reset">Сбросить</button>
@@ -212,32 +192,16 @@
                 <option value="0.006">6 мм</option>
                 <option value="0.01">10 мм</option>
               </select>
-              <details class="help">
-                <summary>Пояснение</summary>
-                <p class="note">Добавляется по 2 стороны там, где указано «+ фанера».</p>
-              </details>
             </div>
             <div>
               <label for="sheetW">Лист фанеры, ширина (м)</label>
               <input id="sheetW" type="number" min="0.1" step="0.01" value="1.25" />
-              <details class="help">
-                <summary>Пояснение</summary>
-                <p class="note">Пока справочно, раскладку по листу не считаем.</p>
-              </details>
             </div>
             <div>
               <label for="sheetL">Лист фанеры, длина (м)</label>
               <input id="sheetL" type="number" min="0.1" step="0.01" value="2.5" />
-              <details class="help">
-                <summary>Пояснение</summary>
-                <p class="note">Пока справочно, раскладку по листу не считаем.</p>
-              </details>
             </div>
           </div>
-          <details class="help">
-            <summary>Пояснение</summary>
-            <p class="note">Рейки: сечение <span id="railThkLabel">0.015</span> × <span id="railWLabel">0.03</span> <span class="unitLabel">м</span>. Для расчёта длины вычитаем ширину <span id="railWNote">0.03</span> <span class="unitLabel">м</span>.</p>
-          </details>
         </section>
       </div>
 
@@ -253,17 +217,9 @@
             <div>
               <label for="railSubtractMm">Вычесть из длины рейки (мм)</label>
               <input id="railSubtractMm" type="number" min="0" step="1" value="0" />
-              <details class="help">
-                <summary>Пояснение</summary>
-                <p class="note">Если указано, рядом показываем длину рейки минус это значение.</p>
-              </details>
             </div>
           </div>
           <div id="slatsResult"></div>
-          <details class="help">
-            <summary>Пояснение</summary>
-            <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×<span id="railWNote2">0.03</span> <span class="unitLabel">м</span>.</p>
-          </details>
         </section>
       </div>
 
@@ -271,9 +227,42 @@
         <section class="card">
           <h2>Формулы с подстановкой</h2>
           <div id="formulaResult"></div>
+        </section>
+      </div>
+
+      <div class="grid" style="margin-top: 20px;">
+        <section class="card">
+          <h2>Пояснения (можно раскрыть)</h2>
           <details class="help">
-            <summary>Пояснение</summary>
-            <p class="note">Показываем промежуточные значения L', H', T' и итоговые размеры деталей.</p>
+            <summary>Размеры картины</summary>
+            <p class="note">Длина — сторона «Лицо» и «Крышка» (L). Высота — сторона «Лицо» и «Бок» (H). Толщина — сторона «Бок» и «Крышка» (T).</p>
+          </details>
+          <details class="help">
+            <summary>Единицы измерения</summary>
+            <p class="note">Переключатель меняет все поля и результаты на м/см/мм.</p>
+          </details>
+          <details class="help">
+            <summary>Пенопласт</summary>
+            <p class="note">Если включено, L, H и T увеличиваются на <span id="foamAddNote">0.04</span> <span class="unitLabel">м</span>.</p>
+          </details>
+          <details class="help">
+            <summary>Фанера</summary>
+            <p class="note">Толщина фанеры добавляется по 2 стороны там, где указано «+ фанера».</p>
+          </details>
+          <details class="help">
+            <summary>Лист фанеры</summary>
+            <p class="note">Размер листа пока справочный, раскладку по листу не считаем.</p>
+          </details>
+          <details class="help">
+            <summary>Рейки</summary>
+            <p class="note">Рейки: сечение <span id="railThkLabel">0.015</span> × <span id="railWLabel">0.03</span> <span class="unitLabel">м</span>. Для расчёта длины вычитаем ширину <span id="railWNote">0.03</span> <span class="unitLabel">м</span>.</p>
+            <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×<span id="railWNote2">0.03</span> <span class="unitLabel">м</span>.</p>
+            <p class="note">Поле «Вычесть из длины рейки (мм)» показывает дополнительное значение в скобках.</p>
+          </details>
+          <details class="help">
+            <summary>Формулы</summary>
+            <p class="note">Лицо = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
+            <p class="note">Блок «Формулы с подстановкой» показывает промежуточные значения L', H', T' и итоговые размеры деталей.</p>
           </details>
         </section>
       </div>
