@@ -154,6 +154,18 @@
         .result.show {
             display: block;
         }
+        .result-columns {
+            display: flex;
+            gap: 24px;
+        }
+        .result-column {
+            flex: 1;
+        }
+        .result-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 6px;
+        }
 
         .result-label {
             color: #666;
@@ -174,6 +186,11 @@
             font-size: 14px;
             color: #666;
             margin-top: 6px;
+        }
+        @media (max-width: 600px) {
+            .result-columns {
+                flex-direction: column;
+            }
         }
 
         .currency {
@@ -273,13 +290,24 @@
         </div>
 
         <div class="result" id="result">
-            <div class="result-label">Общая сумма:</div>
-            <div class="result-value"><span id="resultTotalPrice">0</span> <span class="currency">€</span></div>
-            <div class="result-sub">Цена за 1 изделие: <span id="resultPricePerItem">0</span> €</div>
-            <div class="result-sub">Площадь: <span id="resultArea">0</span> м²</div>
-            <div class="result-sub">Резка: <span id="resultCuttingPrice">0</span> €</div>
-            <div class="result-sub">Гравировка: <span id="resultEngravePrice">0</span> €</div>
-            <div class="result-sub">Материал: <span id="resultMaterialPrice">0</span> €</div>
+            <div class="result-columns">
+                <div class="result-column">
+                    <div class="result-title">Общая сумма:</div>
+                    <div class="result-value"><span id="resultTotalPrice">0</span> <span class="currency">€</span></div>
+                    <div class="result-sub">Площадь: <span id="resultAreaTotal">0</span> м²</div>
+                    <div class="result-sub">Резка: <span id="resultCuttingPrice">0</span> €</div>
+                    <div class="result-sub">Гравировка: <span id="resultEngravePrice">0</span> €</div>
+                    <div class="result-sub">Материал: <span id="resultMaterialPrice">0</span> €</div>
+                </div>
+                <div class="result-column">
+                    <div class="result-title">Сумма за 1 изделие:</div>
+                    <div class="result-value"><span id="resultPricePerItem">0</span> <span class="currency">€</span></div>
+                    <div class="result-sub">Площадь: <span id="resultAreaPerItem">0</span> м²</div>
+                    <div class="result-sub">Резка: <span id="resultCuttingPricePerItem">0</span> €</div>
+                    <div class="result-sub">Гравировка: <span id="resultEngravePricePerItem">0</span> €</div>
+                    <div class="result-sub">Материал: <span id="resultMaterialPricePerItem">0</span> €</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -497,8 +525,12 @@
             document.getElementById('resultCuttingPrice').textContent = (cuttingPricePerItem * quantity).toFixed(2);
             document.getElementById('resultEngravePrice').textContent = (engravePricePerItem * quantity).toFixed(2);
             document.getElementById('resultMaterialPrice').textContent = (materialPricePerItem * quantity).toFixed(2);
-            document.getElementById('resultArea').textContent = materialArea.toFixed(3);
+            document.getElementById('resultAreaTotal').textContent = (materialArea * quantity).toFixed(3);
             document.getElementById('resultPricePerItem').textContent = pricePerItem.toFixed(2);
+            document.getElementById('resultCuttingPricePerItem').textContent = cuttingPricePerItem.toFixed(2);
+            document.getElementById('resultEngravePricePerItem').textContent = engravePricePerItem.toFixed(2);
+            document.getElementById('resultMaterialPricePerItem').textContent = materialPricePerItem.toFixed(2);
+            document.getElementById('resultAreaPerItem').textContent = materialArea.toFixed(3);
             document.getElementById('resultTotalPrice').textContent = totalPrice.toFixed(2);
             document.getElementById('result').classList.add('show');
         }
@@ -516,8 +548,12 @@
             document.getElementById('resultCuttingPrice').textContent = '0';
             document.getElementById('resultEngravePrice').textContent = '0';
             document.getElementById('resultMaterialPrice').textContent = '0';
-            document.getElementById('resultArea').textContent = '0';
+            document.getElementById('resultAreaTotal').textContent = '0';
             document.getElementById('resultPricePerItem').textContent = '0';
+            document.getElementById('resultCuttingPricePerItem').textContent = '0';
+            document.getElementById('resultEngravePricePerItem').textContent = '0';
+            document.getElementById('resultMaterialPricePerItem').textContent = '0';
+            document.getElementById('resultAreaPerItem').textContent = '0';
             document.getElementById('resultTotalPrice').textContent = '0';
             
             // Очищаем ошибки
