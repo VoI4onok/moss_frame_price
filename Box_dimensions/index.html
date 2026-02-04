@@ -135,22 +135,22 @@
           <h2>Размеры картины</h2>
           <div class="row">
             <div>
-              <label for="length">Длина (см)</label>
-              <input id="length" type="number" min="1" value="60" />
+              <label for="length">Длина (м)</label>
+              <input id="length" type="number" min="0.01" step="0.01" value="0.6" />
             </div>
             <div>
-              <label for="height">Высота (см)</label>
-              <input id="height" type="number" min="1" value="40" />
+              <label for="height">Высота (м)</label>
+              <input id="height" type="number" min="0.01" step="0.01" value="0.4" />
             </div>
             <div>
-              <label for="thickness">Толщина (см)</label>
-              <input id="thickness" type="number" min="0.1" step="0.1" value="4" />
+              <label for="thickness">Толщина (м)</label>
+              <input id="thickness" type="number" min="0.001" step="0.001" value="0.04" />
             </div>
           </div>
 
           <div class="toggle">
             <input id="foam" type="checkbox" />
-            <label for="foam">Добавить пенопласт (+4 см по длине/высоте/толщине)</label>
+            <label for="foam">Добавить пенопласт (+0.04 м по длине/высоте/толщине)</label>
           </div>
 
           <button class="btn" id="calc">Рассчитать</button>
@@ -161,24 +161,24 @@
           <h2>Материалы</h2>
           <div class="row">
             <div>
-              <label for="plywood">Толщина фанеры (мм)</label>
+              <label for="plywood">Толщина фанеры (м)</label>
               <select id="plywood">
-                <option value="4">4 мм</option>
-                <option value="8">8 мм</option>
-                <option value="6">6 мм</option>
-                <option value="10">10 мм</option>
+                <option value="0.004">0.004 м (4 мм)</option>
+                <option value="0.008">0.008 м (8 мм)</option>
+                <option value="0.006">0.006 м (6 мм)</option>
+                <option value="0.01">0.010 м (10 мм)</option>
               </select>
             </div>
             <div>
-              <label for="sheetW">Лист фанеры, ширина (см)</label>
-              <input id="sheetW" type="number" min="1" value="125" />
+              <label for="sheetW">Лист фанеры, ширина (м)</label>
+              <input id="sheetW" type="number" min="0.1" step="0.01" value="1.25" />
             </div>
             <div>
-              <label for="sheetL">Лист фанеры, длина (см)</label>
-              <input id="sheetL" type="number" min="1" value="250" />
+              <label for="sheetL">Лист фанеры, длина (м)</label>
+              <input id="sheetL" type="number" min="0.1" step="0.01" value="2.5" />
             </div>
           </div>
-          <p class="note">Рейки: сечение 15×30 мм. Для расчёта длины вычитаем ширину 30 мм.</p>
+          <p class="note">Рейки: сечение 0.015 × 0.03 м. Для расчёта длины вычитаем ширину 0.03 м.</p>
         </section>
       </div>
 
@@ -207,30 +207,29 @@
         const thickness = parseFloat(el('thickness').value || 0);
         const foam = el('foam').checked;
 
-        const plyMm = parseFloat(el('plywood').value || 0);
-        const plyCm = plyMm / 10;
+        const plyM = parseFloat(el('plywood').value || 0);
 
         const sheetW = parseFloat(el('sheetW').value || 0);
         const sheetL = parseFloat(el('sheetL').value || 0);
 
-        const foamAdd = foam ? 4 : 0; // см
-        const railThk = 1.5; // 15 мм
-        const railW = 3.0; // 30 мм
+        const foamAdd = foam ? 0.04 : 0; // м
+        const railThk = 0.015; // 15 мм
+        const railW = 0.03; // 30 мм
 
         const L = length + foamAdd;
         const H = height + foamAdd;
         const T = thickness + foamAdd;
 
         // Лицо: (L,H) + фанера по 4 сторонам + рейка по 4 сторонам
-        const faceL = L + (2 * plyCm) + (2 * railThk);
-        const faceH = H + (2 * plyCm) + (2 * railThk);
+        const faceL = L + (2 * plyM) + (2 * railThk);
+        const faceH = H + (2 * plyM) + (2 * railThk);
 
         // Бок: (H,T) без добавок, кроме пенопласта
         const sideH = H;
         const sideT = T;
 
         // Крышка: (L,T) + фанера по длине 2 стороны + рейка по толщине 2 стороны
-        const lidL = L + (2 * plyCm);
+        const lidL = L + (2 * plyM);
         const lidT = T + (2 * railThk);
 
         const plywoodHtml = `
@@ -239,12 +238,12 @@
               <tr><th>Деталь</th><th>Размер (см)</th><th>Кол-во</th></tr>
             </thead>
             <tbody>
-              <tr><td>Лицо</td><td>${round1(faceL)} × ${round1(faceH)}</td><td>2</td></tr>
-              <tr><td>Бок</td><td>${round1(sideH)} × ${round1(sideT)}</td><td>2</td></tr>
-              <tr><td>Крышка</td><td>${round1(lidL)} × ${round1(lidT)}</td><td>2</td></tr>
+              <tr><td>Лицо</td><td>${round1(faceL)} × ${round1(faceH)} м</td><td>2</td></tr>
+              <tr><td>Бок</td><td>${round1(sideH)} × ${round1(sideT)} м</td><td>2</td></tr>
+              <tr><td>Крышка</td><td>${round1(lidL)} × ${round1(lidT)} м</td><td>2</td></tr>
             </tbody>
           </table>
-          <p class="note">Лист фанеры: ${sheetW} × ${sheetL} см. Раскладку на лист пока считаем вручную.</p>
+          <p class="note">Лист фанеры: ${sheetW} × ${sheetL} м. Раскладку на лист пока считаем вручную.</p>
         `;
 
         // Рейки
@@ -263,12 +262,12 @@
               <tr><th>Сторона</th><th>Длина рейки (см)</th><th>Кол-во</th></tr>
             </thead>
             <tbody>
-              <tr><td>Лицо</td><td>${round1(faceRailLong)}</td><td>4</td></tr>
-              <tr><td>Лицо</td><td>${round1(faceRailShort)}</td><td>6</td></tr>
-              <tr><td>Бок</td><td>${round1(sideRailLong)}</td><td>4</td></tr>
-              <tr><td>Бок</td><td>${round1(sideRailShort)}</td><td>6</td></tr>
-              <tr><td>Крышка</td><td>${round1(lidRailLong)}</td><td>4</td></tr>
-              <tr><td>Крышка</td><td>${round1(lidRailShort)}</td><td>6</td></tr>
+              <tr><td>Лицо</td><td>${round1(faceRailLong)} м</td><td>4</td></tr>
+              <tr><td>Лицо</td><td>${round1(faceRailShort)} м</td><td>6</td></tr>
+              <tr><td>Бок</td><td>${round1(sideRailLong)} м</td><td>4</td></tr>
+              <tr><td>Бок</td><td>${round1(sideRailShort)} м</td><td>6</td></tr>
+              <tr><td>Крышка</td><td>${round1(lidRailLong)} м</td><td>4</td></tr>
+              <tr><td>Крышка</td><td>${round1(lidRailShort)} м</td><td>6</td></tr>
             </tbody>
           </table>
         `;
@@ -288,13 +287,13 @@
 
       el('calc').addEventListener('click', calc);
       el('reset').addEventListener('click', () => {
-        el('length').value = 60;
-        el('height').value = 40;
-        el('thickness').value = 4;
+        el('length').value = 0.6;
+        el('height').value = 0.4;
+        el('thickness').value = 0.04;
         el('foam').checked = false;
-        el('plywood').value = 4;
-        el('sheetW').value = 125;
-        el('sheetL').value = 250;
+        el('plywood').value = 0.004;
+        el('sheetW').value = 1.25;
+        el('sheetL').value = 2.5;
         calc();
       });
 
