@@ -194,6 +194,16 @@
         opacity: 1;
         transform: translateY(0);
       }
+      .sheet-svg .piece {
+        cursor: grab;
+      }
+      .sheet-svg .piece.overlap .piece-rect {
+        stroke: #ff5c5c;
+      }
+      .sheet-svg .rotate-handle,
+      .sheet-svg .rotate-text {
+        cursor: pointer;
+      }
       .pill {
         display: inline-block;
         background: rgba(255, 255, 255, 0.12);
@@ -415,6 +425,7 @@
       const UNIT_FACTORS = { m: 1, cm: 100, mm: 1000 };
       const UNIT_LABELS = { m: 'м', cm: 'см', mm: 'мм' };
       const STORAGE_KEY = 'boxCalcStateV1';
+      const LAYOUT_KEY = 'boxCalcSheetLayoutV1';
 
       function unitFactor() {
         return UNIT_FACTORS[el('unit').value] || 1;
@@ -484,6 +495,45 @@
         } catch {
           return null;
         }
+      }
+
+      function layoutSignature(sheet, pieces) {
+        return JSON.stringify({
+          sheetW: roundTo(sheet.w, 4),
+          sheetH: roundTo(sheet.h, 4),
+          pieces: pieces.map((p) => ({
+            name: p.name,
+            w: roundTo(p.w, 4),
+            h: roundTo(p.h, 4),
+          })),
+        });
+      }
+
+      function loadLayout(signature) {
+        try {
+          const raw = localStorage.getItem(LAYOUT_KEY);
+          if (!raw) return null;
+          const data = JSON.parse(raw);
+          return data && data.signature === signature ? data : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function saveLayout(signature, sheets) {
+        const payload = {
+          signature,
+          sheets: sheets.map((s) => ({
+            placements: s.placements.map((p) => ({
+              id: p.id,
+              x: p.x,
+              y: p.y,
+              rot: p.rot ? 1 : 0,
+              sheetIndex: p.sheetIndex,
+            })),
+          })),
+        };
+        localStorage.setItem(LAYOUT_KEY, JSON.stringify(payload));
       }
 
       function calc() {
@@ -712,40 +762,69 @@
           }
         });
 
-        // Simple shelf packing across multiple sheets
-        flatItems.sort((a, b) => b.h - a.h);
+        const pieces = flatItems
+          .sort((a, b) => b.h - a.h)
+          .map((p, i) => ({ ...p, id: `p${i}`, rot: 0 }));
 
-        const sheets = [];
-        let current = { placements: [], cursorX: 0, cursorY: 0, shelfH: 0 };
+        const signature = layoutSignature(sheet, pieces);
+        const savedLayout = loadLayout(signature);
 
-        function newSheet() {
-          if (current.placements.length) sheets.push(current);
-          current = { placements: [], cursorX: 0, cursorY: 0, shelfH: 0 };
-        }
-
+        let sheets = [];
         let allFit = true;
-        flatItems.forEach((it) => {
-          if (it.w > sheet.w || it.h > sheet.h) {
-            allFit = false;
-            return;
+        if (savedLayout && savedLayout.sheets) {
+          const byId = new Map(pieces.map((p) => [p.id, p]));
+          sheets = savedLayout.sheets.map((s, idx) => ({
+            index: idx,
+            placements: (s.placements || []).map((p) => {
+              const base = byId.get(p.id);
+              if (!base) return null;
+              return {
+                ...base,
+                x: p.x,
+                y: p.y,
+                rot: !!p.rot,
+                sheetIndex: p.sheetIndex ?? idx,
+              };
+            }).filter(Boolean),
+          }));
+          const savedCount = sheets.reduce((acc, s) => acc + s.placements.length, 0);
+          if (savedCount !== pieces.length) {
+            sheets = [];
           }
-          if (current.cursorX + it.w > sheet.w) {
-            current.cursorX = 0;
-            current.cursorY += current.shelfH;
-            current.shelfH = 0;
+        }
+        if (!sheets.length) {
+          // Simple shelf packing across multiple sheets
+          sheets = [];
+          let current = { placements: [], cursorX: 0, cursorY: 0, shelfH: 0, index: 0 };
+
+          function newSheet() {
+            if (current.placements.length) sheets.push(current);
+            current = { placements: [], cursorX: 0, cursorY: 0, shelfH: 0, index: sheets.length };
           }
-          if (current.cursorY + it.h > sheet.h) {
-            newSheet();
-          }
-          if (current.cursorY + it.h > sheet.h) {
-            allFit = false;
-            return;
-          }
-          current.placements.push({ ...it, x: current.cursorX, y: current.cursorY });
-          current.cursorX += it.w;
-          current.shelfH = Math.max(current.shelfH, it.h);
-        });
-        if (current.placements.length) sheets.push(current);
+
+          pieces.forEach((it) => {
+            if (it.w > sheet.w || it.h > sheet.h) {
+              allFit = false;
+              return;
+            }
+            if (current.cursorX + it.w > sheet.w) {
+              current.cursorX = 0;
+              current.cursorY += current.shelfH;
+              current.shelfH = 0;
+            }
+            if (current.cursorY + it.h > sheet.h) {
+              newSheet();
+            }
+            if (current.cursorY + it.h > sheet.h) {
+              allFit = false;
+              return;
+            }
+            current.placements.push({ ...it, x: current.cursorX, y: current.cursorY, sheetIndex: current.index });
+            current.cursorX += it.w;
+            current.shelfH = Math.max(current.shelfH, it.h);
+          });
+          if (current.placements.length) sheets.push(current);
+        }
 
         const sheetPreviewW = 720;
         const sheetPad = 8;
@@ -753,23 +832,27 @@
         const sheetPreviewH = sheet.h * sheetScale + sheetPad * 2;
 
         const sheetSvgs = sheets.map((s, idx) => {
-          const cutLines = s.placements.map((p) => {
+          const piecesSvg = s.placements.map((p) => {
+            const w = (p.rot ? p.h : p.w) * sheetScale;
+            const h = (p.rot ? p.w : p.h) * sheetScale;
             const x = sheetPad + p.x * sheetScale;
             const y = sheetPad + p.y * sheetScale;
-            const w = p.w * sheetScale;
-            const h = p.h * sheetScale;
             const label = `${p.name} ${formatValue(p.w)}×${formatValue(p.h)} ${unitLabel()}`;
             return `
-              <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.06)" stroke="#4ad4ff" stroke-dasharray="6 4" stroke-width="1.5"/>
-              <text x="${x + 6}" y="${y + 16}" fill="#eaf7ff" font-size="11">${label}</text>
+              <g class="piece" data-id="${p.id}" data-sheet="${idx}">
+                <rect class="piece-rect" x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.06)" stroke="#4ad4ff" stroke-dasharray="6 4" stroke-width="1.5"/>
+                <text class="piece-label" x="${x + 6}" y="${y + 16}" fill="#eaf7ff" font-size="11">${label}</text>
+                <rect class="rotate-handle" x="${x + w - 16}" y="${y + 4}" width="12" height="12" fill="rgba(255,255,255,0.85)" stroke="#0b0b0b" stroke-width="0.5"/>
+                <text class="rotate-text" x="${x + w - 10}" y="${y + 13}" fill="#0b0b0b" font-size="9" text-anchor="middle">R</text>
+              </g>
             `;
           }).join('');
 
           return `
             <div class="pill" style="margin-top: 8px;">Лист ${idx + 1}</div>
-            <svg viewBox="0 0 ${sheetPreviewW} ${sheetPreviewH}" width="100%" height="${sheetPreviewH}" aria-label="Раскрой фанеры">
-              <rect x="${sheetPad}" y="${sheetPad}" width="${sheet.w * sheetScale}" height="${sheet.h * sheetScale}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.4)"/>
-              ${cutLines}
+            <svg class="sheet-svg" data-sheet="${idx}" data-scale="${sheetScale}" data-pad="${sheetPad}" data-w="${sheet.w}" data-h="${sheet.h}" viewBox="0 0 ${sheetPreviewW} ${sheetPreviewH}" width="100%" height="${sheetPreviewH}" aria-label="Раскрой фанеры">
+              <rect class="sheet-rect" x="${sheetPad}" y="${sheetPad}" width="${sheet.w * sheetScale}" height="${sheet.h * sheetScale}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.4)"/>
+              ${piecesSvg}
             </svg>
           `;
         }).join('');
@@ -779,6 +862,178 @@
           : '<div class="warn">Некоторые детали не помещаются даже при раскрое на несколько листов.</div>';
 
         el('sheetCutPreview').innerHTML = sheetSvgs + sheetNote;
+
+        function initInteractiveSheets() {
+          const snap = 0.003; // 3 mm in meters
+          const sheetSvgsEls = Array.from(document.querySelectorAll('.sheet-svg'));
+          const piecesById = new Map();
+          sheets.forEach((s, sIdx) => {
+            s.placements.forEach((p) => {
+              piecesById.set(p.id, { ...p, sheetIndex: sIdx });
+            });
+          });
+
+          function getPieceDims(p) {
+            return { w: p.rot ? p.h : p.w, h: p.rot ? p.w : p.h };
+          }
+
+          function applySnap(p, others, sheetInfo) {
+            const dims = getPieceDims(p);
+            let bestDx = null;
+            let bestDy = null;
+
+            const check = (delta, axis) => {
+              const ad = Math.abs(delta);
+              if (ad <= snap && (axis === 'x' ? bestDx : bestDy) === null) {
+                if (axis === 'x') bestDx = delta;
+                else bestDy = delta;
+              } else if (ad <= snap) {
+                if (axis === 'x' && Math.abs(delta) < Math.abs(bestDx)) bestDx = delta;
+                if (axis === 'y' && Math.abs(delta) < Math.abs(bestDy)) bestDy = delta;
+              }
+            };
+
+            check(0 - p.x, 'x');
+            check((sheetInfo.w - dims.w) - p.x, 'x');
+            check(0 - p.y, 'y');
+            check((sheetInfo.h - dims.h) - p.y, 'y');
+
+            others.forEach((o) => {
+              const od = getPieceDims(o);
+              check(o.x - (p.x + dims.w), 'x');
+              check((o.x + od.w) - p.x, 'x');
+              check(o.y - (p.y + dims.h), 'y');
+              check((o.y + od.h) - p.y, 'y');
+            });
+
+            if (bestDx !== null) p.x += bestDx;
+            if (bestDy !== null) p.y += bestDy;
+          }
+
+          function overlaps(a, b) {
+            const da = getPieceDims(a);
+            const db = getPieceDims(b);
+            return a.x < b.x + db.w &&
+              a.x + da.w > b.x &&
+              a.y < b.y + db.h &&
+              a.y + da.h > b.y;
+          }
+
+          function updatePieceDom(p, svg) {
+            const scale = parseFloat(svg.dataset.scale);
+            const pad = parseFloat(svg.dataset.pad);
+            const dims = getPieceDims(p);
+            const x = pad + p.x * scale;
+            const y = pad + p.y * scale;
+            const w = dims.w * scale;
+            const h = dims.h * scale;
+            const g = svg.querySelector(`.piece[data-id="${p.id}"]`);
+            if (!g) return;
+            const rect = g.querySelector('.piece-rect');
+            const label = g.querySelector('.piece-label');
+            const handle = g.querySelector('.rotate-handle');
+            const handleText = g.querySelector('.rotate-text');
+            rect.setAttribute('x', x);
+            rect.setAttribute('y', y);
+            rect.setAttribute('width', w);
+            rect.setAttribute('height', h);
+            label.setAttribute('x', x + 6);
+            label.setAttribute('y', y + 16);
+            handle.setAttribute('x', x + w - 16);
+            handle.setAttribute('y', y + 4);
+            handleText.setAttribute('x', x + w - 10);
+            handleText.setAttribute('y', y + 13);
+          }
+
+          sheetSvgsEls.forEach((svg) => {
+            const sheetIndex = parseInt(svg.dataset.sheet, 10);
+            const sheetInfo = { w: parseFloat(svg.dataset.w), h: parseFloat(svg.dataset.h) };
+            let activeId = null;
+            let start = null;
+            let lastValid = null;
+
+            const svgRect = () => svg.getBoundingClientRect();
+            const scale = parseFloat(svg.dataset.scale);
+            const pad = parseFloat(svg.dataset.pad);
+
+            const onPointerMove = (e) => {
+              if (!activeId) return;
+              const p = piecesById.get(activeId);
+              const rect = svgRect();
+              const mx = (e.clientX - rect.left - pad) / scale;
+              const my = (e.clientY - rect.top - pad) / scale;
+              p.x = mx - start.offsetX;
+              p.y = my - start.offsetY;
+
+              const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === sheetIndex);
+              applySnap(p, others, sheetInfo);
+              const isOverlap = others.some((o) => overlaps(p, o));
+              if (!isOverlap) {
+                lastValid = { x: p.x, y: p.y };
+              }
+              updatePieceDom(p, svg);
+              const g = svg.querySelector(`.piece[data-id="${p.id}"]`);
+              if (g) g.classList.toggle('overlap', isOverlap);
+            };
+
+            const onPointerUp = () => {
+              if (!activeId) return;
+              const p = piecesById.get(activeId);
+              const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === sheetIndex);
+              const isOverlap = others.some((o) => overlaps(p, o));
+              if (isOverlap && lastValid) {
+                p.x = lastValid.x;
+                p.y = lastValid.y;
+              }
+              updatePieceDom(p, svg);
+              const g = svg.querySelector(`.piece[data-id="${p.id}"]`);
+              if (g) g.classList.remove('overlap');
+              activeId = null;
+              start = null;
+              lastValid = null;
+              saveLayout(signature, sheets.map((s, sIdx) => ({
+                placements: Array.from(piecesById.values()).filter((pp) => pp.sheetIndex === sIdx),
+              })));
+              window.removeEventListener('pointermove', onPointerMove);
+              window.removeEventListener('pointerup', onPointerUp);
+            };
+
+            svg.addEventListener('pointerdown', (e) => {
+              const target = e.target;
+              const group = target.closest('.piece');
+              if (!group) return;
+              const id = group.dataset.id;
+              const p = piecesById.get(id);
+              if (!p) return;
+
+              if (target.classList.contains('rotate-handle') || target.classList.contains('rotate-text')) {
+                p.rot = !p.rot;
+                const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === sheetIndex);
+                const isOverlap = others.some((o) => overlaps(p, o));
+                if (isOverlap) {
+                  p.rot = !p.rot;
+                }
+                updatePieceDom(p, svg);
+                saveLayout(signature, sheets.map((s, sIdx) => ({
+                  placements: Array.from(piecesById.values()).filter((pp) => pp.sheetIndex === sIdx),
+                })));
+                return;
+              }
+
+              activeId = id;
+              const rect = svgRect();
+              const mx = (e.clientX - rect.left - pad) / scale;
+              const my = (e.clientY - rect.top - pad) / scale;
+              const dims = getPieceDims(p);
+              start = { offsetX: mx - p.x, offsetY: my - p.y, w: dims.w, h: dims.h };
+              lastValid = { x: p.x, y: p.y };
+              window.addEventListener('pointermove', onPointerMove);
+              window.addEventListener('pointerup', onPointerUp);
+            });
+          });
+        }
+
+        initInteractiveSheets();
 
         const warnings = [];
         if (faceRailShort <= 0 || sideRailShort <= 0 || lidRailShort <= 0) {
