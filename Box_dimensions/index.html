@@ -292,6 +292,20 @@
               <label for="sheetL">Лист фанеры, длина (м)</label>
               <input id="sheetL" type="number" min="0.1" step="0.01" value="2.5" />
             </div>
+            <div>
+              <label for="sheetProduct">OSB 8 мм (цена за м²)</label>
+              <select id="sheetProduct">
+                <option value="3.91">OSB 1.25×2.5 (3.91 €/м²)</option>
+                <option value="5.06">OSB 0.83×1.25 (5.06 €/м²)</option>
+              </select>
+            </div>
+            <div>
+              <label for="bulkMode">Цена</label>
+              <select id="bulkMode">
+                <option value="retail">Обычная</option>
+                <option value="bulk">От 5 листов</option>
+              </select>
+            </div>
           </div>
           <div style="margin-top: 14px;">
             <div class="pill">OSB (8 мм) — цены и размеры</div>
@@ -473,6 +487,8 @@
 
         const sheetW = toMeters(parseFloat(el('sheetW').value || 0));
         const sheetL = toMeters(parseFloat(el('sheetL').value || 0));
+        const sheetProductPrice = parseFloat(el('sheetProduct').value || 0);
+        const bulkMode = el('bulkMode').value;
 
         const foamAdd = foam ? 0.04 : 0; // м
         const railThk = 0.015; // 15 мм
@@ -496,6 +512,20 @@
         const lidL = L + (2 * plyM) + (2 * railThk);
         const lidT = T;
 
+        const totalPlywoodArea = (faceL * faceH * 2) + (sideH * sideT * 2) + (lidL * lidT * 2);
+        const plywoodAreaWithWaste = totalPlywoodArea * 1.1;
+
+        const railTotalLength = (faceRailLong * 4) + (faceRailShort * 6) +
+          (sideRailLong * 4) + (sideRailShort * 6) +
+          (lidRailLong * 4) + (lidRailShort * 6);
+        const railLengthWithWaste = railTotalLength * 1.1;
+        const railCost = railLengthWithWaste * 1.85;
+
+        const plywoodPricePerM2 = bulkMode === 'bulk'
+          ? (sheetProductPrice === 3.91 ? 3.78 : 4.26)
+          : sheetProductPrice;
+        const plywoodCost = plywoodAreaWithWaste * plywoodPricePerM2;
+
         const plywoodHtml = `
           <table>
             <thead>
@@ -508,6 +538,9 @@
             </tbody>
           </table>
           <p class="note">Лист фанеры: ${formatValue(sheetW)} × ${formatValue(sheetL)} ${unitLabel()}. Раскладку на лист пока считаем вручную.</p>
+          <p class="note">Площадь фанеры: ${roundTo(totalPlywoodArea, 3)} м². С отходами (10%): ${roundTo(plywoodAreaWithWaste, 3)} м².</p>
+          <p class="note">Стоимость фанеры: ${roundTo(plywoodCost, 2)} € (${roundTo(plywoodPricePerM2, 2)} €/м²).</p>
+          <p class="note">Рейки: ${roundTo(railTotalLength, 2)} м. С отходами (10%): ${roundTo(railLengthWithWaste, 2)} м. Стоимость: ${roundTo(railCost, 2)} €.</p>
         `;
 
         // Рейки
@@ -764,6 +797,8 @@
           sheetW: sheetW,
           sheetL: sheetL,
           railSubtractMm: railSubtractMm,
+          sheetProductPrice: sheetProductPrice,
+          bulkMode: bulkMode,
         });
       }
 
@@ -779,6 +814,8 @@
         el('sheetW').value = roundTo(fromMeters(state.sheetW || 1.25), 3);
         el('sheetL').value = roundTo(fromMeters(state.sheetL || 2.5), 3);
         el('railSubtractMm').value = state.railSubtractMm || 0;
+        el('sheetProduct').value = String(state.sheetProductPrice || 3.91);
+        el('bulkMode').value = state.bulkMode || 'retail';
       }
 
       function init() {
@@ -849,7 +886,7 @@
         calc();
       });
 
-      ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL', 'railSubtractMm'].forEach((id) => {
+      ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL', 'railSubtractMm', 'sheetProduct', 'bulkMode'].forEach((id) => {
         el(id).addEventListener('input', calc);
         el(id).addEventListener('change', calc);
       });
