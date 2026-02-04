@@ -273,7 +273,7 @@
         </section>
 
         <section class="card">
-          <h2>Материалы</h2>
+          <h2>Выбор фанеры</h2>
           <div class="row">
             <div>
               <label for="plywood">Толщина фанеры (мм)</label>
@@ -307,41 +307,18 @@
               </select>
             </div>
           </div>
-          <div style="margin-top: 14px;">
-            <div class="pill">OSB (8 мм) — цены и размеры</div>
-            <table>
-              <thead>
-                <tr><th>Материал</th><th>Размер листа</th><th>Цена за лист</th><th>Цена за м²</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><a class="link-badge" href="https://online.depo.lv/product/660" target="_blank" rel="noreferrer">OSB 8 мм</a></td>
-                  <td>1.25 × 2.5 м</td>
-                  <td>12.21 € (от 5 шт: 11.81 €)</td>
-                  <td>3.91 € (от 5 шт: 3.78 €)</td>
-                </tr>
-                <tr>
-                  <td><a class="link-badge" href="https://online.depo.lv/product/191074" target="_blank" rel="noreferrer">OSB 8 мм (меньший лист)</a></td>
-                  <td>0.83 × 1.25 м</td>
-                  <td>5.25 € (от 5 шт: 4.42 €)</td>
-                  <td>5.06 € (от 5 шт: 4.26 €)</td>
-                </tr>
-              </tbody>
-            </table>
-            <p class="note">Цена за м² рассчитана по площади листа.</p>
-          </div>
         </section>
       </div>
 
       <div class="grid" style="margin-top: 20px;">
         <section class="card">
-          <h2>Фанера (раскрой деталей)</h2>
+          <h2>Раскрой фанеры</h2>
           <div id="plywoodResult"></div>
           <div id="sheetCutPreview" style="margin-top: 6px;"></div>
           <p class="note">Фасад = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
         </section>
         <section class="card">
-          <h2>Рейки (длины)</h2>
+          <h2>Раскрой реек</h2>
           <div class="row">
             <div>
               <label for="railSubtractMm">Вычесть из длины рейки (мм)</label>
@@ -349,7 +326,6 @@
             </div>
           </div>
           <div id="slatsResult"></div>
-          <div id="slatsPreview" style="margin-top: 12px;"></div>
         </section>
       </div>
 
@@ -363,6 +339,34 @@
       </div>
 
       <div class="grid" style="margin-top: 20px;">
+        <section class="card">
+          <h2>Стоимость материалов</h2>
+          <div id="costResult"></div>
+        </section>
+        <section class="card">
+          <h2>Цены OSB и магазины</h2>
+          <div class="pill">OSB (8 мм) — цены и размеры</div>
+          <table>
+            <thead>
+              <tr><th>Материал</th><th>Размер листа</th><th>Цена за лист</th><th>Цена за м²</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a class="link-badge" href="https://online.depo.lv/product/660" target="_blank" rel="noreferrer">OSB 8 мм</a></td>
+                <td>1.25 × 2.5 м</td>
+                <td>12.21 € (от 5 шт: 11.81 €)</td>
+                <td>3.91 € (от 5 шт: 3.78 €)</td>
+              </tr>
+              <tr>
+                <td><a class="link-badge" href="https://online.depo.lv/product/191074" target="_blank" rel="noreferrer">OSB 8 мм (меньший лист)</a></td>
+                <td>0.83 × 1.25 м</td>
+                <td>5.25 € (от 5 шт: 4.42 €)</td>
+                <td>5.06 € (от 5 шт: 4.26 €)</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="note">Цена за м² рассчитана по площади листа.</p>
+        </section>
         <section class="card">
           <h2>Пояснения (можно раскрыть)</h2>
           <details class="help">
@@ -548,9 +552,13 @@
             </tbody>
           </table>
           <p class="note">Лист фанеры: ${formatValue(sheetW)} × ${formatValue(sheetL)} ${unitLabel()}. Раскладку на лист пока считаем вручную.</p>
+        `;
+
+        const costHtml = `
           <p class="note">Площадь фанеры: ${roundTo(totalPlywoodArea, 3)} м². С отходами (10%): ${roundTo(plywoodAreaWithWaste, 3)} м².</p>
           <p class="note">Стоимость фанеры: ${roundTo(plywoodCost, 2)} € (${roundTo(plywoodPricePerM2, 2)} €/м²).</p>
           <p class="note">Рейки: ${roundTo(railTotalLength, 2)} м. С отходами (10%): ${roundTo(railLengthWithWaste, 2)} м. Стоимость: ${roundTo(railCost, 2)} €.</p>
+          <p class="note">Итого материалы: ${roundTo(plywoodCost + railCost, 2)} €.</p>
         `;
 
         const railItems = [
@@ -672,39 +680,7 @@
         el('plywoodResult').innerHTML = plywoodHtml;
         el('slatsResult').innerHTML = slatsHtml;
         el('formulaResult').innerHTML = formulaHtml;
-
-        const slatPreviewW = 720;
-        const slatPad = 10;
-        const slatGap = 10;
-        const maxRailLen = groupedList.length ? groupedList[0].len : 1;
-        const slatScale = maxRailLen > 0 ? (slatPreviewW - slatPad * 2) / maxRailLen : 1;
-        let sy = slatPad;
-        const slatRects = groupedList.map((item) => {
-          const w = Math.max(2, item.len * slatScale);
-          const h = 18;
-          const x = slatPad;
-          const y = sy;
-          const label = `${formatValue(item.len)} ${unitLabel()} × ${item.count}`;
-          const tooltipParts = Object.entries(item.bySide || {})
-            .filter(([, cnt]) => cnt > 0)
-            .map(([side, cnt]) => `${side}: ${cnt}`);
-          const tooltip = tooltipParts.join(', ');
-          const rect = `
-            <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.4)"/>
-            <text x="${x + 6}" y="${y + 12}" fill="#f5f5f5" font-size="11">${label}</text>
-            <title>${tooltip}</title>
-          `;
-          sy += h + slatGap;
-          return rect;
-        }).join('');
-
-        const slatSvgH = sy + slatPad - slatGap;
-        const slatsSvg = `
-          <svg viewBox="0 0 ${slatPreviewW} ${slatSvgH}" width="100%" height="${slatSvgH}" aria-label="Эскиз реек">
-            ${slatRects}
-          </svg>
-        `;
-        el('slatsPreview').innerHTML = slatsSvg;
+        el('costResult').innerHTML = costHtml;
 
         const sheet = { w: sheetW, h: sheetL };
         const items = [
