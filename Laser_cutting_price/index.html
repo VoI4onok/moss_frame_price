@@ -237,15 +237,15 @@
         <div class="input-row">
             <div class="input-group">
                 <label for="materialLength">Длина материала</label>
-                <input type="number" id="materialLength" placeholder="Например: 0.5" value="0" step="0.1" min="0">
-                <div class="unit">метры</div>
+                <input type="number" id="materialLength" placeholder="Например: 500" value="0" step="10" min="0">
+                <div class="unit">мм</div>
                 <div class="error" id="materialLengthError">Пожалуйста, введите длину материала</div>
             </div>
 
             <div class="input-group">
                 <label for="materialWidth">Ширина материала</label>
-                <input type="number" id="materialWidth" placeholder="Например: 0.3" value="0" step="0.1" min="0">
-                <div class="unit">метры</div>
+                <input type="number" id="materialWidth" placeholder="Например: 300" value="0" step="10" min="0">
+                <div class="unit">мм</div>
                 <div class="error" id="materialWidthError">Пожалуйста, введите ширину материала</div>
             </div>
         </div>
@@ -455,8 +455,8 @@
 
         function calculatePrice() {
             const length = parseFloat(document.getElementById('length').value) || 0;
-            const materialLength = parseFloat(document.getElementById('materialLength').value) || 0;
-            const materialWidth = parseFloat(document.getElementById('materialWidth').value) || 0;
+            const materialLengthMm = parseFloat(document.getElementById('materialLength').value) || 0;
+            const materialWidthMm = parseFloat(document.getElementById('materialWidth').value) || 0;
             const quantity = parseInt(document.getElementById('quantity').value, 10);
             const materialValue = document.getElementById('material').value;
             const tariffValue = document.getElementById('tariff').value;
@@ -477,12 +477,12 @@
                 hasError = true;
             }
 
-            if (materialLength <= 0) {
+            if (materialLengthMm <= 0) {
                 document.getElementById('materialLengthError').classList.add('show');
                 hasError = true;
             }
 
-            if (materialWidth <= 0) {
+            if (materialWidthMm <= 0) {
                 document.getElementById('materialWidthError').classList.add('show');
                 hasError = true;
             }
@@ -515,7 +515,7 @@
             
             const engraveMinutes = parseClockToMinutes(document.getElementById('engraveTime').value);
             const engravePricePerItem = (engraveMinutes / 60) * 30;
-            const materialArea = materialLength * materialWidth;
+            const materialArea = (materialLengthMm / 1000) * (materialWidthMm / 1000);
             const materialPricePerItem = materialArea * 1.1 * material.pricePerSqm;
 
             const cuttingPricePerItem = length * pricePerMeter;
@@ -744,8 +744,8 @@
             });
         }
 
-        bindWheelStep(document.getElementById('materialLength'), 0.1, 1);
-        bindWheelStep(document.getElementById('materialWidth'), 0.1, 1);
+        bindWheelStep(document.getElementById('materialLength'), 10, 0);
+        bindWheelStep(document.getElementById('materialWidth'), 10, 0);
     </script>
 </body>
 </html>
