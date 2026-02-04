@@ -323,7 +323,7 @@
         <section class="card">
           <h2>Фанера (раскрой деталей)</h2>
           <div id="plywoodResult"></div>
-          <div id="plywoodPreview" style="margin-top: 12px;"></div>
+          <div id="plywoodPreview" style="margin-top: 6px;"></div>
           <p class="note">Фасад = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
         </section>
         <section class="card">
@@ -680,8 +680,8 @@
         ].map((p) => (p.h > p.w ? { ...p, w: p.h, h: p.w } : p));
 
         const previewW = 720;
-        const rowGap = 14;
-        const pad = 10;
+        const rowGap = 8;
+        const pad = 6;
         const maxPartW = Math.max(...parts.map((p) => p.w));
         const scale = maxPartW > 0 ? (previewW - pad * 2) / maxPartW : 1;
 
@@ -694,8 +694,8 @@
           const cy = y + h / 2;
           const rect = `
             <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.4)"/>
-            <text x="${cx}" y="${cy - 2}" fill="#f5f5f5" font-size="12" text-anchor="middle">${p.name}</text>
-            <text x="${cx}" y="${cy + 12}" fill="#bdbdbd" font-size="11" text-anchor="middle">${formatValue(p.w)} × ${formatValue(p.h)} ${unitLabel()}</text>
+            <text x="${x + 6}" y="${y + 18}" fill="#f5f5f5" font-size="14" text-anchor="start">${p.name}</text>
+            <text x="${cx}" y="${cy + 6}" fill="#e0e0e0" font-size="14" text-anchor="middle">${formatValue(p.w)} × ${formatValue(p.h)} ${unitLabel()}</text>
           `;
           y += h + rowGap;
           return rect;
