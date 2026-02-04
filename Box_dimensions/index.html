@@ -801,7 +801,7 @@
           }
         }
         if (!sheets.length) {
-          // Simple shelf packing across multiple sheets
+          // Shelf packing across multiple sheets with rotation to maximize first sheet
           sheets = [];
           let current = { placements: [], cursorX: 0, cursorY: 0, shelfH: 0, index: 0 };
 
@@ -811,25 +811,50 @@
           }
 
           pieces.forEach((it) => {
-            if (it.w > sheet.w || it.h > sheet.h) {
+            const fitsNormal = it.w <= sheet.w && it.h <= sheet.h;
+            const fitsRot = it.h <= sheet.w && it.w <= sheet.h;
+            if (!fitsNormal && !fitsRot) {
               allFit = false;
               return;
             }
-            if (current.cursorX + it.w > sheet.w) {
-              current.cursorX = 0;
-              current.cursorY += current.shelfH;
-              current.shelfH = 0;
+
+            const tryPlace = (w, h, rotFlag) => {
+              if (current.cursorX + w > sheet.w) {
+                current.cursorX = 0;
+                current.cursorY += current.shelfH;
+                current.shelfH = 0;
+              }
+              if (current.cursorY + h > sheet.h) {
+                newSheet();
+              }
+              if (current.cursorY + h > sheet.h) {
+                allFit = false;
+                return false;
+              }
+              current.placements.push({ ...it, x: current.cursorX, y: current.cursorY, rot: rotFlag, sheetIndex: current.index });
+              current.cursorX += w;
+              current.shelfH = Math.max(current.shelfH, h);
+              return true;
+            };
+
+            // Prefer orientation that fits current shelf better (more items on first sheet)
+            const remainingW = sheet.w - current.cursorX;
+            const fitNormalOnShelf = it.w <= remainingW;
+            const fitRotOnShelf = it.h <= remainingW;
+
+            if (fitNormalOnShelf && fitRotOnShelf) {
+              const preferRot = it.h < it.w;
+              const placed = preferRot ? tryPlace(it.h, it.w, true) : tryPlace(it.w, it.h, false);
+              if (!placed) tryPlace(preferRot ? it.w : it.h, preferRot ? it.h : it.w, !preferRot);
+            } else if (fitNormalOnShelf) {
+              if (!tryPlace(it.w, it.h, false)) tryPlace(it.h, it.w, true);
+            } else if (fitRotOnShelf) {
+              if (!tryPlace(it.h, it.w, true)) tryPlace(it.w, it.h, false);
+            } else {
+              // doesn't fit current shelf, try new shelf (handled in tryPlace)
+              if (fitsNormal && !tryPlace(it.w, it.h, false)) tryPlace(it.h, it.w, true);
+              if (!fitsNormal) tryPlace(it.h, it.w, true);
             }
-            if (current.cursorY + it.h > sheet.h) {
-              newSheet();
-            }
-            if (current.cursorY + it.h > sheet.h) {
-              allFit = false;
-              return;
-            }
-            current.placements.push({ ...it, x: current.cursorX, y: current.cursorY, sheetIndex: current.index });
-            current.cursorX += it.w;
-            current.shelfH = Math.max(current.shelfH, it.h);
           });
           if (current.placements.length) sheets.push(current);
         }
@@ -889,38 +914,64 @@
             return { w: p.rot ? p.h : p.w, h: p.rot ? p.w : p.h };
           }
 
-          function applySnap(p, others, sheetInfo) {
-            const dims = getPieceDims(p);
-            let bestDx = null;
-            let bestDy = null;
+        function applySnap(p, others, sheetInfo) {
+          const dims = getPieceDims(p);
+          let bestDx = null;
+          let bestDy = null;
+          let cornerDx = null;
+          let cornerDy = null;
 
-            const check = (delta, axis) => {
-              const ad = Math.abs(delta);
-              if (ad <= snap && (axis === 'x' ? bestDx : bestDy) === null) {
-                if (axis === 'x') bestDx = delta;
-                else bestDy = delta;
-              } else if (ad <= snap) {
-                if (axis === 'x' && Math.abs(delta) < Math.abs(bestDx)) bestDx = delta;
-                if (axis === 'y' && Math.abs(delta) < Math.abs(bestDy)) bestDy = delta;
+          const check = (delta, axis) => {
+            const ad = Math.abs(delta);
+            if (ad <= snap && (axis === 'x' ? bestDx : bestDy) === null) {
+              if (axis === 'x') bestDx = delta;
+              else bestDy = delta;
+            } else if (ad <= snap) {
+              if (axis === 'x' && Math.abs(delta) < Math.abs(bestDx)) bestDx = delta;
+              if (axis === 'y' && Math.abs(delta) < Math.abs(bestDy)) bestDy = delta;
+            }
+          };
+
+          check(0 - p.x, 'x');
+          check((sheetInfo.w - dims.w) - p.x, 'x');
+          check(0 - p.y, 'y');
+          check((sheetInfo.h - dims.h) - p.y, 'y');
+
+          others.forEach((o) => {
+            const od = getPieceDims(o);
+            check(o.x - (p.x + dims.w), 'x');
+            check((o.x + od.w) - p.x, 'x');
+            check(o.y - (p.y + dims.h), 'y');
+            check((o.y + od.h) - p.y, 'y');
+
+            const cornerPairs = [
+              { dx: o.x - p.x, dy: o.y - p.y },
+              { dx: (o.x + od.w) - p.x, dy: o.y - p.y },
+              { dx: o.x - (p.x + dims.w), dy: o.y - p.y },
+              { dx: (o.x + od.w) - (p.x + dims.w), dy: o.y - p.y },
+              { dx: o.x - p.x, dy: (o.y + od.h) - p.y },
+              { dx: (o.x + od.w) - p.x, dy: (o.y + od.h) - p.y },
+              { dx: o.x - (p.x + dims.w), dy: (o.y + od.h) - p.y },
+              { dx: (o.x + od.w) - (p.x + dims.w), dy: (o.y + od.h) - p.y },
+            ];
+            cornerPairs.forEach((c) => {
+              if (Math.abs(c.dx) <= snap && Math.abs(c.dy) <= snap) {
+                if (cornerDx === null || (Math.abs(c.dx) + Math.abs(c.dy)) < (Math.abs(cornerDx) + Math.abs(cornerDy))) {
+                  cornerDx = c.dx;
+                  cornerDy = c.dy;
+                }
               }
-            };
-
-            check(0 - p.x, 'x');
-            check((sheetInfo.w - dims.w) - p.x, 'x');
-            check(0 - p.y, 'y');
-            check((sheetInfo.h - dims.h) - p.y, 'y');
-
-            others.forEach((o) => {
-              const od = getPieceDims(o);
-              check(o.x - (p.x + dims.w), 'x');
-              check((o.x + od.w) - p.x, 'x');
-              check(o.y - (p.y + dims.h), 'y');
-              check((o.y + od.h) - p.y, 'y');
             });
+          });
 
+          if (cornerDx !== null && cornerDy !== null) {
+            p.x += cornerDx;
+            p.y += cornerDy;
+          } else {
             if (bestDx !== null) p.x += bestDx;
             if (bestDy !== null) p.y += bestDy;
           }
+        }
 
           function overlaps(a, b) {
             const da = getPieceDims(a);
