@@ -714,7 +714,18 @@
         ];
 
         const flatItems = [];
+        let facadeSplit = false;
         items.forEach((it) => {
+          if (it.name === 'Фасад' && (it.w > sheet.w || it.h > sheet.h)) {
+            const halfW = it.w / 2;
+            if ((halfW <= sheet.w && it.h <= sheet.h) || (halfW <= sheet.h && it.h <= sheet.w)) {
+              facadeSplit = true;
+              for (let i = 0; i < it.count * 2; i += 1) {
+                flatItems.push({ name: 'Фасад (половина)', w: halfW, h: it.h });
+              }
+              return;
+            }
+          }
           for (let i = 0; i < it.count; i += 1) {
             flatItems.push({ name: it.name, w: it.w, h: it.h });
           }
@@ -773,7 +784,7 @@
         `;
 
         const sheetNote = fits
-          ? ''
+          ? (facadeSplit ? '<div class="note">Фасады разделены пополам по длине для раскроя.</div>' : '')
           : '<div class="warn">В один лист не помещается. Увеличьте размер листа или используйте несколько.</div>';
 
         el('sheetCutPreview').innerHTML = sheetSvg + sheetNote;
