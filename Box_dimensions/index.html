@@ -202,12 +202,20 @@
         <section class="card">
           <h2>Фанера (раскрой деталей)</h2>
           <div id="plywoodResult"></div>
-          <p class="note">Лицо = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера) × (T + 2*рейка).</p>
+          <p class="note">Лицо = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
         </section>
         <section class="card">
           <h2>Рейки (длины)</h2>
           <div id="slatsResult"></div>
           <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×<span id="railWNote2">0.03</span> <span class="unitLabel">м</span>.</p>
+        </section>
+      </div>
+
+      <div class="grid" style="margin-top: 20px;">
+        <section class="card">
+          <h2>Формулы с подстановкой</h2>
+          <div id="formulaResult"></div>
+          <p class="note">Показываем промежуточные значения L', H', T' и итоговые размеры деталей.</p>
         </section>
       </div>
     </main>
@@ -337,9 +345,9 @@
         const sideH = H;
         const sideT = T;
 
-        // Крышка: (L,T) + фанера по длине 2 стороны + рейка по толщине 2 стороны
-        const lidL = L + (2 * plyM);
-        const lidT = T + (2 * railThk);
+        // Крышка: (L,T) + фанера по длине 2 стороны + рейка по длине 2 стороны
+        const lidL = L + (2 * plyM) + (2 * railThk);
+        const lidT = T;
 
         const plywoodHtml = `
           <table>
@@ -381,8 +389,84 @@
           </table>
         `;
 
+        const formulaHtml = `
+          <table>
+            <thead>
+              <tr><th>Расчёт</th><th>Формула</th><th>Значение</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Пенопласт</td>
+                <td>F = ${foam ? '0.04' : '0'} м</td>
+                <td>${formatValue(foamAdd)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Длина с пенопластом</td>
+                <td>L' = L + F</td>
+                <td>${formatValue(L)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Высота с пенопластом</td>
+                <td>H' = H + F</td>
+                <td>${formatValue(H)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Толщина с пенопластом</td>
+                <td>T' = T + F</td>
+                <td>${formatValue(T)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Лицо (длина)</td>
+                <td>FaceL = L' + 2*P + 2*R</td>
+                <td>${formatValue(faceL)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Лицо (высота)</td>
+                <td>FaceH = H' + 2*P + 2*R</td>
+                <td>${formatValue(faceH)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Бок (высота)</td>
+                <td>SideH = H'</td>
+                <td>${formatValue(sideH)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Бок (толщина)</td>
+                <td>SideT = T'</td>
+                <td>${formatValue(sideT)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Крышка (длина)</td>
+                <td>LidL = L' + 2*P + 2*R</td>
+                <td>${formatValue(lidL)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Крышка (толщина)</td>
+                <td>LidT = T'</td>
+                <td>${formatValue(lidT)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Рейки Лицо (короткие)</td>
+                <td>FaceShort = FaceH - 2*RW</td>
+                <td>${formatValue(faceRailShort)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Рейки Бок (короткие)</td>
+                <td>SideShort = SideT - 2*RW</td>
+                <td>${formatValue(sideRailShort)} ${unitLabel()}</td>
+              </tr>
+              <tr>
+                <td>Рейки Крышка (короткие)</td>
+                <td>LidShort = LidT - 2*RW</td>
+                <td>${formatValue(lidRailShort)} ${unitLabel()}</td>
+              </tr>
+            </tbody>
+          </table>
+        `;
+
         el('plywoodResult').innerHTML = plywoodHtml;
         el('slatsResult').innerHTML = slatsHtml;
+        el('formulaResult').innerHTML = formulaHtml;
 
         const warnings = [];
         if (faceRailShort <= 0 || sideRailShort <= 0 || lidRailShort <= 0) {
