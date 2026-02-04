@@ -1106,7 +1106,9 @@
           });
 
           window.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() !== 'r') return;
+            const key = e.key.toLowerCase();
+            const isRotateKey = key === 'r' || key === 'к' || e.code === 'KeyR';
+            if (!isRotateKey) return;
             const tag = document.activeElement?.tagName?.toLowerCase();
             if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
             if (!selectedId || selectedSheetIndex === null) return;
