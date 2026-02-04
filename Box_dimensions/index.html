@@ -149,13 +149,22 @@
               <input id="thickness" type="number" min="0.001" step="0.001" value="0.04" />
               <p class="note">Это сторона «Бок» и «Крышка». Используется как T.</p>
             </div>
+            <div>
+              <label for="unit">Единицы измерения</label>
+              <select id="unit">
+                <option value="m">Метры</option>
+                <option value="cm">Сантиметры</option>
+                <option value="mm">Миллиметры</option>
+              </select>
+              <p class="note">Переключает все поля и результаты.</p>
+            </div>
           </div>
 
           <div class="toggle">
             <input id="foam" type="checkbox" />
-            <label for="foam">Добавить пенопласт (+0.04 м по длине/высоте/толщине)</label>
+            <label for="foam">Добавить пенопласт (+<span id="foamAddLabel">0.04</span> <span class="unitLabel">м</span> по длине/высоте/толщине)</label>
           </div>
-          <p class="note">Если включено, L, H и T увеличиваются на 0.04 м.</p>
+          <p class="note">Если включено, L, H и T увеличиваются на <span id="foamAddNote">0.04</span> <span class="unitLabel">м</span>.</p>
 
           <button class="btn" id="calc">Рассчитать</button>
           <button class="btn secondary" id="reset">Сбросить</button>
@@ -185,7 +194,7 @@
               <p class="note">Пока справочно, раскладку по листу не считаем.</p>
             </div>
           </div>
-          <p class="note">Рейки: сечение 0.015 × 0.03 м. Для расчёта длины вычитаем ширину 0.03 м.</p>
+          <p class="note">Рейки: сечение <span id="railThkLabel">0.015</span> × <span id="railWLabel">0.03</span> <span class="unitLabel">м</span>. Для расчёта длины вычитаем ширину <span id="railWNote">0.03</span> <span class="unitLabel">м</span>.</p>
         </section>
       </div>
 
@@ -198,7 +207,7 @@
         <section class="card">
           <h2>Рейки (длины)</h2>
           <div id="slatsResult"></div>
-          <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×0.03 м.</p>
+          <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×<span id="railWNote2">0.03</span> <span class="unitLabel">м</span>.</p>
         </section>
       </div>
     </main>
@@ -206,20 +215,111 @@
     <script>
       const el = (id) => document.getElementById(id);
 
-      function round1(n) {
-        return Math.round(n * 10) / 10;
+      const UNIT_FACTORS = { m: 1, cm: 100, mm: 1000 };
+      const UNIT_LABELS = { m: 'м', cm: 'см', mm: 'мм' };
+      const STORAGE_KEY = 'boxCalcStateV1';
+
+      function unitFactor() {
+        return UNIT_FACTORS[el('unit').value] || 1;
+      }
+
+      function unitLabel() {
+        return UNIT_LABELS[el('unit').value] || 'м';
+      }
+
+      function roundTo(n, digits) {
+        const p = Math.pow(10, digits);
+        return Math.round(n * p) / p;
+      }
+
+      function formatValue(meters) {
+        const factor = unitFactor();
+        const u = meters * factor;
+        const digits = el('unit').value === 'm' ? 3 : el('unit').value === 'cm' ? 1 : 0;
+        return `${roundTo(u, digits)}`;
+      }
+
+      function toMeters(valueInUnit) {
+        return valueInUnit / unitFactor();
+      }
+
+      function fromMeters(valueInMeters) {
+        return valueInMeters * unitFactor();
+      }
+
+      function updateUnitLabels() {
+        document.querySelectorAll('.unitLabel').forEach((node) => {
+          node.textContent = unitLabel();
+        });
+
+        const foamAddM = 0.04;
+        el('foamAddLabel').textContent = formatValue(foamAddM);
+        el('foamAddNote').textContent = formatValue(foamAddM);
+
+        const railThkM = 0.015;
+        const railWM = 0.03;
+        el('railThkLabel').textContent = formatValue(railThkM);
+        el('railWLabel').textContent = formatValue(railWM);
+        el('railWNote').textContent = formatValue(railWM);
+        el('railWNote2').textContent = formatValue(railWM);
+
+        updatePlywoodOptions();
+        updateInputLabels();
+      }
+
+      function updateInputLabels() {
+        const labelSuffix = `(${unitLabel()})`;
+        el('length').previousElementSibling.textContent = `Длина ${labelSuffix}`;
+        el('height').previousElementSibling.textContent = `Высота ${labelSuffix}`;
+        el('thickness').previousElementSibling.textContent = `Толщина ${labelSuffix}`;
+        el('sheetW').previousElementSibling.textContent = `Лист фанеры, ширина ${labelSuffix}`;
+        el('sheetL').previousElementSibling.textContent = `Лист фанеры, длина ${labelSuffix}`;
+        el('plywood').previousElementSibling.textContent = `Толщина фанеры ${labelSuffix}`;
+      }
+
+      function updatePlywoodOptions() {
+        const options = [
+          { value: 0.004, labelMm: '4 мм' },
+          { value: 0.008, labelMm: '8 мм' },
+          { value: 0.006, labelMm: '6 мм' },
+          { value: 0.01, labelMm: '10 мм' },
+        ];
+
+        const select = el('plywood');
+        const current = select.value;
+        select.innerHTML = '';
+        options.forEach((opt) => {
+          const option = document.createElement('option');
+          option.value = opt.value;
+          option.textContent = `${formatValue(opt.value)} ${unitLabel()} (${opt.labelMm})`;
+          select.appendChild(option);
+        });
+        select.value = current || '0.004';
+      }
+
+      function saveState(state) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
       }
 
       function calc() {
-        const length = parseFloat(el('length').value || 0);
-        const height = parseFloat(el('height').value || 0);
-        const thickness = parseFloat(el('thickness').value || 0);
+        const length = toMeters(parseFloat(el('length').value || 0));
+        const height = toMeters(parseFloat(el('height').value || 0));
+        const thickness = toMeters(parseFloat(el('thickness').value || 0));
         const foam = el('foam').checked;
 
         const plyM = parseFloat(el('plywood').value || 0);
 
-        const sheetW = parseFloat(el('sheetW').value || 0);
-        const sheetL = parseFloat(el('sheetL').value || 0);
+        const sheetW = toMeters(parseFloat(el('sheetW').value || 0));
+        const sheetL = toMeters(parseFloat(el('sheetL').value || 0));
 
         const foamAdd = foam ? 0.04 : 0; // м
         const railThk = 0.015; // 15 мм
@@ -247,12 +347,12 @@
               <tr><th>Деталь</th><th>Размер (см)</th><th>Кол-во</th></tr>
             </thead>
             <tbody>
-              <tr><td>Лицо</td><td>${round1(faceL)} × ${round1(faceH)} м</td><td>2</td></tr>
-              <tr><td>Бок</td><td>${round1(sideH)} × ${round1(sideT)} м</td><td>2</td></tr>
-              <tr><td>Крышка</td><td>${round1(lidL)} × ${round1(lidT)} м</td><td>2</td></tr>
+              <tr><td>Лицо</td><td>${formatValue(faceL)} × ${formatValue(faceH)} ${unitLabel()}</td><td>2</td></tr>
+              <tr><td>Бок</td><td>${formatValue(sideH)} × ${formatValue(sideT)} ${unitLabel()}</td><td>2</td></tr>
+              <tr><td>Крышка</td><td>${formatValue(lidL)} × ${formatValue(lidT)} ${unitLabel()}</td><td>2</td></tr>
             </tbody>
           </table>
-          <p class="note">Лист фанеры: ${sheetW} × ${sheetL} м. Раскладку на лист пока считаем вручную.</p>
+          <p class="note">Лист фанеры: ${formatValue(sheetW)} × ${formatValue(sheetL)} ${unitLabel()}. Раскладку на лист пока считаем вручную.</p>
         `;
 
         // Рейки
@@ -271,12 +371,12 @@
               <tr><th>Сторона</th><th>Длина рейки (см)</th><th>Кол-во</th></tr>
             </thead>
             <tbody>
-              <tr><td>Лицо</td><td>${round1(faceRailLong)} м</td><td>4</td></tr>
-              <tr><td>Лицо</td><td>${round1(faceRailShort)} м</td><td>6</td></tr>
-              <tr><td>Бок</td><td>${round1(sideRailLong)} м</td><td>4</td></tr>
-              <tr><td>Бок</td><td>${round1(sideRailShort)} м</td><td>6</td></tr>
-              <tr><td>Крышка</td><td>${round1(lidRailLong)} м</td><td>4</td></tr>
-              <tr><td>Крышка</td><td>${round1(lidRailShort)} м</td><td>6</td></tr>
+              <tr><td>Лицо</td><td>${formatValue(faceRailLong)} ${unitLabel()}</td><td>4</td></tr>
+              <tr><td>Лицо</td><td>${formatValue(faceRailShort)} ${unitLabel()}</td><td>6</td></tr>
+              <tr><td>Бок</td><td>${formatValue(sideRailLong)} ${unitLabel()}</td><td>4</td></tr>
+              <tr><td>Бок</td><td>${formatValue(sideRailShort)} ${unitLabel()}</td><td>6</td></tr>
+              <tr><td>Крышка</td><td>${formatValue(lidRailLong)} ${unitLabel()}</td><td>4</td></tr>
+              <tr><td>Крышка</td><td>${formatValue(lidRailShort)} ${unitLabel()}</td><td>6</td></tr>
             </tbody>
           </table>
         `;
@@ -292,10 +392,63 @@
         if (warnings.length) {
           el('slatsResult').innerHTML += `<div class="warn">${warnings.join(' ')}</div>`;
         }
+
+        saveState({
+          unit: el('unit').value,
+          length: length,
+          height: height,
+          thickness: thickness,
+          foam: foam,
+          plywood: plyM,
+          sheetW: sheetW,
+          sheetL: sheetL,
+        });
+      }
+
+      function setInputsFromState(state) {
+        el('unit').value = state.unit || 'm';
+        updateUnitLabels();
+
+        el('length').value = roundTo(fromMeters(state.length || 0.6), 3);
+        el('height').value = roundTo(fromMeters(state.height || 0.4), 3);
+        el('thickness').value = roundTo(fromMeters(state.thickness || 0.04), 3);
+        el('foam').checked = !!state.foam;
+        el('plywood').value = String(state.plywood || 0.004);
+        el('sheetW').value = roundTo(fromMeters(state.sheetW || 1.25), 3);
+        el('sheetL').value = roundTo(fromMeters(state.sheetL || 2.5), 3);
+      }
+
+      function init() {
+        const saved = loadState();
+        if (saved) {
+          setInputsFromState(saved);
+        } else {
+          updateUnitLabels();
+        }
+        calc();
       }
 
       el('calc').addEventListener('click', calc);
+      el('unit').addEventListener('change', () => {
+        const lengthM = toMeters(parseFloat(el('length').value || 0));
+        const heightM = toMeters(parseFloat(el('height').value || 0));
+        const thicknessM = toMeters(parseFloat(el('thickness').value || 0));
+        const sheetWM = toMeters(parseFloat(el('sheetW').value || 0));
+        const sheetLM = toMeters(parseFloat(el('sheetL').value || 0));
+
+        updateUnitLabels();
+
+        el('length').value = roundTo(fromMeters(lengthM), 3);
+        el('height').value = roundTo(fromMeters(heightM), 3);
+        el('thickness').value = roundTo(fromMeters(thicknessM), 3);
+        el('sheetW').value = roundTo(fromMeters(sheetWM), 3);
+        el('sheetL').value = roundTo(fromMeters(sheetLM), 3);
+
+        calc();
+      });
       el('reset').addEventListener('click', () => {
+        el('unit').value = 'm';
+        updateUnitLabels();
         el('length').value = 0.6;
         el('height').value = 0.4;
         el('thickness').value = 0.04;
@@ -306,7 +459,12 @@
         calc();
       });
 
-      calc();
+      ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL'].forEach((id) => {
+        el(id).addEventListener('input', calc);
+        el(id).addEventListener('change', calc);
+      });
+
+      init();
     </script>
   </body>
 </html>
