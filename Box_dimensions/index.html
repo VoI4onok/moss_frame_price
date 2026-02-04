@@ -115,6 +115,22 @@
         font-size: 13px;
         color: var(--muted);
       }
+      details.help {
+        margin-top: 8px;
+        border: 1px dashed var(--line);
+        border-radius: 10px;
+        padding: 8px 10px;
+        background: #fffdf7;
+      }
+      details.help > summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--accent);
+        list-style: none;
+      }
+      details.help > summary::-webkit-details-marker {
+        display: none;
+      }
       .warn {
         color: #8a3a1f;
         background: #fde9df;
@@ -137,17 +153,26 @@
             <div>
               <label for="length">Длина (м)</label>
               <input id="length" type="number" min="0.01" step="0.01" value="0.6" />
-              <p class="note">Это сторона «Лицо» и «Крышка». Используется как L.</p>
+              <details class="help">
+                <summary>Пояснение</summary>
+                <p class="note">Это сторона «Лицо» и «Крышка». Используется как L.</p>
+              </details>
             </div>
             <div>
               <label for="height">Высота (м)</label>
               <input id="height" type="number" min="0.01" step="0.01" value="0.4" />
-              <p class="note">Это сторона «Лицо» и «Бок». Используется как H.</p>
+              <details class="help">
+                <summary>Пояснение</summary>
+                <p class="note">Это сторона «Лицо» и «Бок». Используется как H.</p>
+              </details>
             </div>
             <div>
               <label for="thickness">Толщина (м)</label>
               <input id="thickness" type="number" min="0.001" step="0.001" value="0.04" />
-              <p class="note">Это сторона «Бок» и «Крышка». Используется как T.</p>
+              <details class="help">
+                <summary>Пояснение</summary>
+                <p class="note">Это сторона «Бок» и «Крышка». Используется как T.</p>
+              </details>
             </div>
             <div>
               <label for="unit">Единицы измерения</label>
@@ -156,7 +181,10 @@
                 <option value="cm">Сантиметры</option>
                 <option value="mm">Миллиметры</option>
               </select>
-              <p class="note">Переключает все поля и результаты.</p>
+              <details class="help">
+                <summary>Пояснение</summary>
+                <p class="note">Переключает все поля и результаты.</p>
+              </details>
             </div>
           </div>
 
@@ -164,7 +192,10 @@
             <input id="foam" type="checkbox" />
             <label for="foam">Добавить пенопласт (+<span id="foamAddLabel">0.04</span> <span class="unitLabel">м</span> по длине/высоте/толщине)</label>
           </div>
-          <p class="note">Если включено, L, H и T увеличиваются на <span id="foamAddNote">0.04</span> <span class="unitLabel">м</span>.</p>
+          <details class="help">
+            <summary>Пояснение</summary>
+            <p class="note">Если включено, L, H и T увеличиваются на <span id="foamAddNote">0.04</span> <span class="unitLabel">м</span>.</p>
+          </details>
 
           <button class="btn" id="calc">Рассчитать</button>
           <button class="btn secondary" id="reset">Сбросить</button>
@@ -174,27 +205,39 @@
           <h2>Материалы</h2>
           <div class="row">
             <div>
-              <label for="plywood">Толщина фанеры (м)</label>
+              <label for="plywood">Толщина фанеры (мм)</label>
               <select id="plywood">
-                <option value="0.004">0.004 м (4 мм)</option>
-                <option value="0.008">0.008 м (8 мм)</option>
-                <option value="0.006">0.006 м (6 мм)</option>
-                <option value="0.01">0.010 м (10 мм)</option>
+                <option value="0.004">4 мм</option>
+                <option value="0.008">8 мм</option>
+                <option value="0.006">6 мм</option>
+                <option value="0.01">10 мм</option>
               </select>
-              <p class="note">Добавляется по 2 стороны там, где указано «+ фанера».</p>
+              <details class="help">
+                <summary>Пояснение</summary>
+                <p class="note">Добавляется по 2 стороны там, где указано «+ фанера».</p>
+              </details>
             </div>
             <div>
               <label for="sheetW">Лист фанеры, ширина (м)</label>
               <input id="sheetW" type="number" min="0.1" step="0.01" value="1.25" />
-              <p class="note">Пока справочно, раскладку по листу не считаем.</p>
+              <details class="help">
+                <summary>Пояснение</summary>
+                <p class="note">Пока справочно, раскладку по листу не считаем.</p>
+              </details>
             </div>
             <div>
               <label for="sheetL">Лист фанеры, длина (м)</label>
               <input id="sheetL" type="number" min="0.1" step="0.01" value="2.5" />
-              <p class="note">Пока справочно, раскладку по листу не считаем.</p>
+              <details class="help">
+                <summary>Пояснение</summary>
+                <p class="note">Пока справочно, раскладку по листу не считаем.</p>
+              </details>
             </div>
           </div>
-          <p class="note">Рейки: сечение <span id="railThkLabel">0.015</span> × <span id="railWLabel">0.03</span> <span class="unitLabel">м</span>. Для расчёта длины вычитаем ширину <span id="railWNote">0.03</span> <span class="unitLabel">м</span>.</p>
+          <details class="help">
+            <summary>Пояснение</summary>
+            <p class="note">Рейки: сечение <span id="railThkLabel">0.015</span> × <span id="railWLabel">0.03</span> <span class="unitLabel">м</span>. Для расчёта длины вычитаем ширину <span id="railWNote">0.03</span> <span class="unitLabel">м</span>.</p>
+          </details>
         </section>
       </div>
 
@@ -206,8 +249,21 @@
         </section>
         <section class="card">
           <h2>Рейки (длины)</h2>
+          <div class="row">
+            <div>
+              <label for="railSubtractMm">Вычесть из длины рейки (мм)</label>
+              <input id="railSubtractMm" type="number" min="0" step="1" value="0" />
+              <details class="help">
+                <summary>Пояснение</summary>
+                <p class="note">Если указано, рядом показываем длину рейки минус это значение.</p>
+              </details>
+            </div>
+          </div>
           <div id="slatsResult"></div>
-          <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×<span id="railWNote2">0.03</span> <span class="unitLabel">м</span>.</p>
+          <details class="help">
+            <summary>Пояснение</summary>
+            <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×<span id="railWNote2">0.03</span> <span class="unitLabel">м</span>.</p>
+          </details>
         </section>
       </div>
 
@@ -215,7 +271,10 @@
         <section class="card">
           <h2>Формулы с подстановкой</h2>
           <div id="formulaResult"></div>
-          <p class="note">Показываем промежуточные значения L', H', T' и итоговые размеры деталей.</p>
+          <details class="help">
+            <summary>Пояснение</summary>
+            <p class="note">Показываем промежуточные значения L', H', T' и итоговые размеры деталей.</p>
+          </details>
         </section>
       </div>
     </main>
@@ -271,7 +330,6 @@
         el('railWNote').textContent = formatValue(railWM);
         el('railWNote2').textContent = formatValue(railWM);
 
-        updatePlywoodOptions();
         updateInputLabels();
       }
 
@@ -282,27 +340,7 @@
         el('thickness').previousElementSibling.textContent = `Толщина ${labelSuffix}`;
         el('sheetW').previousElementSibling.textContent = `Лист фанеры, ширина ${labelSuffix}`;
         el('sheetL').previousElementSibling.textContent = `Лист фанеры, длина ${labelSuffix}`;
-        el('plywood').previousElementSibling.textContent = `Толщина фанеры ${labelSuffix}`;
-      }
-
-      function updatePlywoodOptions() {
-        const options = [
-          { value: 0.004, labelMm: '4 мм' },
-          { value: 0.008, labelMm: '8 мм' },
-          { value: 0.006, labelMm: '6 мм' },
-          { value: 0.01, labelMm: '10 мм' },
-        ];
-
-        const select = el('plywood');
-        const current = select.value;
-        select.innerHTML = '';
-        options.forEach((opt) => {
-          const option = document.createElement('option');
-          option.value = opt.value;
-          option.textContent = `${formatValue(opt.value)} ${unitLabel()} (${opt.labelMm})`;
-          select.appendChild(option);
-        });
-        select.value = current || '0.004';
+        el('plywood').previousElementSibling.textContent = 'Толщина фанеры (мм)';
       }
 
       function saveState(state) {
@@ -332,6 +370,8 @@
         const foamAdd = foam ? 0.04 : 0; // м
         const railThk = 0.015; // 15 мм
         const railW = 0.03; // 30 мм
+        const railSubtractMm = parseFloat(el('railSubtractMm').value || 0);
+        const railSubtractM = railSubtractMm / 1000;
 
         const L = length + foamAdd;
         const H = height + foamAdd;
@@ -379,12 +419,12 @@
               <tr><th>Сторона</th><th>Длина рейки (см)</th><th>Кол-во</th></tr>
             </thead>
             <tbody>
-              <tr><td>Лицо</td><td>${formatValue(faceRailLong)} ${unitLabel()}</td><td>4</td></tr>
-              <tr><td>Лицо</td><td>${formatValue(faceRailShort)} ${unitLabel()}</td><td>6</td></tr>
-              <tr><td>Бок</td><td>${formatValue(sideRailLong)} ${unitLabel()}</td><td>4</td></tr>
-              <tr><td>Бок</td><td>${formatValue(sideRailShort)} ${unitLabel()}</td><td>6</td></tr>
-              <tr><td>Крышка</td><td>${formatValue(lidRailLong)} ${unitLabel()}</td><td>4</td></tr>
-              <tr><td>Крышка</td><td>${formatValue(lidRailShort)} ${unitLabel()}</td><td>6</td></tr>
+              <tr><td>Лицо</td><td>${formatValue(faceRailLong)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(faceRailLong - railSubtractM)} ${unitLabel()})` : ''}</td><td>4</td></tr>
+              <tr><td>Лицо</td><td>${formatValue(faceRailShort)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(faceRailShort - railSubtractM)} ${unitLabel()})` : ''}</td><td>6</td></tr>
+              <tr><td>Бок</td><td>${formatValue(sideRailLong)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(sideRailLong - railSubtractM)} ${unitLabel()})` : ''}</td><td>4</td></tr>
+              <tr><td>Бок</td><td>${formatValue(sideRailShort)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(sideRailShort - railSubtractM)} ${unitLabel()})` : ''}</td><td>6</td></tr>
+              <tr><td>Крышка</td><td>${formatValue(lidRailLong)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(lidRailLong - railSubtractM)} ${unitLabel()})` : ''}</td><td>4</td></tr>
+              <tr><td>Крышка</td><td>${formatValue(lidRailShort)} ${unitLabel()}${railSubtractMm > 0 ? ` (${formatValue(lidRailShort - railSubtractM)} ${unitLabel()})` : ''}</td><td>6</td></tr>
             </tbody>
           </table>
         `;
@@ -486,6 +526,7 @@
           plywood: plyM,
           sheetW: sheetW,
           sheetL: sheetL,
+          railSubtractMm: railSubtractMm,
         });
       }
 
@@ -500,6 +541,7 @@
         el('plywood').value = String(state.plywood || 0.004);
         el('sheetW').value = roundTo(fromMeters(state.sheetW || 1.25), 3);
         el('sheetL').value = roundTo(fromMeters(state.sheetL || 2.5), 3);
+        el('railSubtractMm').value = state.railSubtractMm || 0;
       }
 
       function init() {
@@ -543,7 +585,7 @@
         calc();
       });
 
-      ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL'].forEach((id) => {
+      ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL', 'railSubtractMm'].forEach((id) => {
         el(id).addEventListener('input', calc);
         el(id).addEventListener('change', calc);
       });
