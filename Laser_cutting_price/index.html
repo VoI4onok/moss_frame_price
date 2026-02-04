@@ -170,6 +170,11 @@
         .result-value:last-of-type {
             margin-bottom: 0;
         }
+        .result-sub {
+            font-size: 14px;
+            color: #666;
+            margin-top: 6px;
+        }
 
         .currency {
             font-size: 18px;
@@ -215,13 +220,15 @@
         <div class="input-row">
             <div class="input-group">
                 <label for="materialLength">Длина материала</label>
-                <input type="number" id="materialLength" placeholder="Например: 0.5" value="0" step="0.01" min="0">
+                <input type="number" id="materialLength" placeholder="Например: 0.5" value="0" step="0.1" min="0">
+                <div class="unit">метры</div>
                 <div class="error" id="materialLengthError">Пожалуйста, введите длину материала</div>
             </div>
 
             <div class="input-group">
                 <label for="materialWidth">Ширина материала</label>
-                <input type="number" id="materialWidth" placeholder="Например: 0.3" value="0" step="0.01" min="0">
+                <input type="number" id="materialWidth" placeholder="Например: 0.3" value="0" step="0.1" min="0">
+                <div class="unit">метры</div>
                 <div class="error" id="materialWidthError">Пожалуйста, введите ширину материала</div>
             </div>
         </div>
@@ -266,12 +273,12 @@
         </div>
 
         <div class="result" id="result">
-            <div class="result-label">Цена за 1 изделие:</div>
-            <div class="result-value"><span id="resultPrice">0</span> <span class="currency">€</span></div>
-            <div class="result-label">Цена материала за 1 изделие:</div>
-            <div class="result-value"><span id="resultMaterialPrice">0</span> <span class="currency">€</span></div>
-            <div class="result-label">Цена за все изделия:</div>
+            <div class="result-label">Общая сумма:</div>
             <div class="result-value"><span id="resultTotalPrice">0</span> <span class="currency">€</span></div>
+            <div class="result-sub">Площадь: <span id="resultArea">0</span> м²</div>
+            <div class="result-sub">Резка: <span id="resultCuttingPrice">0</span> €</div>
+            <div class="result-sub">Гравировка: <span id="resultEngravePrice">0</span> €</div>
+            <div class="result-sub">Материал: <span id="resultMaterialPrice">0</span> €</div>
         </div>
     </div>
 
@@ -482,11 +489,14 @@
             const materialArea = materialLength * materialWidth;
             const materialPricePerItem = materialArea * 1.1 * material.pricePerSqm;
 
-            const pricePerItem = (length * pricePerMeter) + engravePricePerItem + materialPricePerItem;
+            const cuttingPricePerItem = length * pricePerMeter;
+            const pricePerItem = cuttingPricePerItem + engravePricePerItem + materialPricePerItem;
             const totalPrice = pricePerItem * quantity;
 
-            document.getElementById('resultPrice').textContent = pricePerItem.toFixed(2);
-            document.getElementById('resultMaterialPrice').textContent = materialPricePerItem.toFixed(2);
+            document.getElementById('resultCuttingPrice').textContent = (cuttingPricePerItem * quantity).toFixed(2);
+            document.getElementById('resultEngravePrice').textContent = (engravePricePerItem * quantity).toFixed(2);
+            document.getElementById('resultMaterialPrice').textContent = (materialPricePerItem * quantity).toFixed(2);
+            document.getElementById('resultArea').textContent = materialArea.toFixed(3);
             document.getElementById('resultTotalPrice').textContent = totalPrice.toFixed(2);
             document.getElementById('result').classList.add('show');
         }
@@ -501,8 +511,10 @@
             document.getElementById('material').value = '';
             document.getElementById('tariff').innerHTML = '<option value="">Сначала выберите материал</option>';
             document.getElementById('result').classList.remove('show');
-            document.getElementById('resultPrice').textContent = '0';
+            document.getElementById('resultCuttingPrice').textContent = '0';
+            document.getElementById('resultEngravePrice').textContent = '0';
             document.getElementById('resultMaterialPrice').textContent = '0';
+            document.getElementById('resultArea').textContent = '0';
             document.getElementById('resultTotalPrice').textContent = '0';
             
             // Очищаем ошибки
@@ -608,6 +620,32 @@
 
             this.value = newValue.toFixed(1);
         });
+
+        function bindWheelStep(input, step, decimals) {
+            input.addEventListener('change', function() {
+                if (this.value === '') return;
+                const parsed = parseFloat(String(this.value).replace(',', '.'));
+                if (isNaN(parsed)) {
+                    this.value = '0';
+                    return;
+                }
+                const rounded = Math.round(parsed / step) * step;
+                this.value = Math.max(0, rounded).toFixed(decimals);
+            });
+
+            input.addEventListener('wheel', function(event) {
+                event.preventDefault();
+
+                const currentValue = parseFloat(String(this.value).replace(',', '.')) || 0;
+                const direction = event.deltaY > 0 ? -1 : 1; // вверх увеличивает, вниз уменьшает
+                const newValue = Math.max(0, currentValue + (step * direction));
+
+                this.value = newValue.toFixed(decimals);
+            });
+        }
+
+        bindWheelStep(document.getElementById('materialLength'), 0.1, 1);
+        bindWheelStep(document.getElementById('materialWidth'), 0.1, 1);
     </script>
 </body>
 </html>
