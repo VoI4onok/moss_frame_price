@@ -682,6 +682,33 @@
         calc();
       }
 
+      function addWheelStep(inputId, stepInMeters) {
+        const input = el(inputId);
+        if (!input) return;
+        input.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const direction = e.deltaY < 0 ? 1 : -1;
+          const current = parseFloat(input.value || 0);
+          const stepInUnit = stepInMeters * unitFactor();
+          const next = current + direction * stepInUnit;
+          input.value = roundTo(next, 3);
+          calc();
+        }, { passive: false });
+      }
+
+      function addWheelStepFixed(inputId, stepValue) {
+        const input = el(inputId);
+        if (!input) return;
+        input.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const direction = e.deltaY < 0 ? 1 : -1;
+          const current = parseFloat(input.value || 0);
+          const next = current + direction * stepValue;
+          input.value = roundTo(next, 3);
+          calc();
+        }, { passive: false });
+      }
+
       el('calc').addEventListener('click', calc);
       el('unit').addEventListener('change', () => {
         const lengthM = toMeters(parseFloat(el('length').value || 0));
@@ -717,6 +744,13 @@
         el(id).addEventListener('input', calc);
         el(id).addEventListener('change', calc);
       });
+
+      addWheelStep('length', 0.01);
+      addWheelStep('height', 0.01);
+      addWheelStep('thickness', 0.01);
+      addWheelStep('sheetW', 0.01);
+      addWheelStep('sheetL', 0.01);
+      addWheelStepFixed('railSubtractMm', 1);
 
       init();
     </script>
