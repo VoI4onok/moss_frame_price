@@ -212,6 +212,20 @@
             </div>
         </div>
 
+        <div class="input-row">
+            <div class="input-group">
+                <label for="materialLength">Длина материала</label>
+                <input type="number" id="materialLength" placeholder="Например: 0.5" value="0" step="0.01" min="0">
+                <div class="error" id="materialLengthError">Пожалуйста, введите длину материала</div>
+            </div>
+
+            <div class="input-group">
+                <label for="materialWidth">Ширина материала</label>
+                <input type="number" id="materialWidth" placeholder="Например: 0.3" value="0" step="0.01" min="0">
+                <div class="error" id="materialWidthError">Пожалуйста, введите ширину материала</div>
+            </div>
+        </div>
+
         <div class="input-group">
             <label for="quantity">Количество изделий</label>
             <input type="number" id="quantity" placeholder="Например: 10" value="1" step="1" min="1">
@@ -254,6 +268,8 @@
         <div class="result" id="result">
             <div class="result-label">Цена за 1 изделие:</div>
             <div class="result-value"><span id="resultPrice">0</span> <span class="currency">€</span></div>
+            <div class="result-label">Цена материала за 1 изделие:</div>
+            <div class="result-value"><span id="resultMaterialPrice">0</span> <span class="currency">€</span></div>
             <div class="result-label">Цена за все изделия:</div>
             <div class="result-value"><span id="resultTotalPrice">0</span> <span class="currency">€</span></div>
         </div>
@@ -264,6 +280,7 @@
         const materialsData = {
             birch_plywood_4: {
                 name: 'Берёза 4 мм',
+                pricePerSqm: 10.9,
                 tariffs: [
                     { name: '100 изделий', minQty: 100, pricePerMeter: 0.60 },
                     { name: '50 изделий', minQty: 50, pricePerMeter: 0.70 },
@@ -274,6 +291,7 @@
             },
             birch_plywood_6: {
                 name: 'Берёза 6 мм',
+                pricePerSqm: 12.2,
                 tariffs: [
                     { name: '100 изделий', minQty: 100, pricePerMeter: 0.90 },
                     { name: '50 изделий', minQty: 50, pricePerMeter: 1.25 },
@@ -284,6 +302,7 @@
             },
             falkate_3: {
                 name: 'Фальката 3 мм',
+                pricePerSqm: 5.0,
                 tariffs: [
                     { name: '100 изделий', minQty: 100, pricePerMeter: 0.35 },
                     { name: '50 изделий', minQty: 50, pricePerMeter: 0.40 },
@@ -294,6 +313,7 @@
             },
             falkate_5: {
                 name: 'Фальката 5 мм',
+                pricePerSqm: 7.1,
                 tariffs: [
                     { name: '100 изделий', minQty: 100, pricePerMeter: 0.50 },
                     { name: '50 изделий', minQty: 50, pricePerMeter: 0.60 },
@@ -304,6 +324,7 @@
             },
             acrylic_2_3: {
                 name: 'Оргстекло 2-3 мм',
+                pricePerSqm: 29.0,
                 tariffs: [
                     { name: '100 изделий', minQty: 100, pricePerMeter: 0.60 },
                     { name: '50 изделий', minQty: 50, pricePerMeter: 2.00 },
@@ -314,6 +335,7 @@
             },
             acrylic_6: {
                 name: 'Оргстекло 6 мм',
+                pricePerSqm: 58.0,
                 tariffs: [
                     { name: '100 изделий', minQty: 100, pricePerMeter: 0.90 },
                     { name: '50 изделий', minQty: 50, pricePerMeter: 2.50 },
@@ -324,6 +346,7 @@
             },
             pressboard_3: {
                 name: 'Пресскартон 3 мм',
+                pricePerSqm: 1.9,
                 tariffs: [
                     { name: '100 изделий', minQty: 100, pricePerMeter: 0.35 },
                     { name: '50 изделий', minQty: 50, pricePerMeter: 0.40 },
@@ -334,6 +357,7 @@
             },
             hdf_6: {
                 name: 'HDF 6 мм',
+                pricePerSqm: 9.4,
                 tariffs: [
                     { name: '100 изделий', minQty: 100, pricePerMeter: 0.60 },
                     { name: '50 изделий', minQty: 50, pricePerMeter: 0.70 },
@@ -395,12 +419,16 @@
 
         function calculatePrice() {
             const length = parseFloat(document.getElementById('length').value) || 0;
+            const materialLength = parseFloat(document.getElementById('materialLength').value) || 0;
+            const materialWidth = parseFloat(document.getElementById('materialWidth').value) || 0;
             const quantity = parseInt(document.getElementById('quantity').value, 10);
             const materialValue = document.getElementById('material').value;
             const tariffValue = document.getElementById('tariff').value;
 
             // Очищаем все ошибки
             document.getElementById('lengthError').classList.remove('show');
+            document.getElementById('materialLengthError').classList.remove('show');
+            document.getElementById('materialWidthError').classList.remove('show');
             document.getElementById('quantityError').classList.remove('show');
             document.getElementById('materialError').classList.remove('show');
             document.getElementById('tariffError').classList.remove('show');
@@ -410,6 +438,16 @@
 
             if (length <= 0) {
                 document.getElementById('lengthError').classList.add('show');
+                hasError = true;
+            }
+
+            if (materialLength <= 0) {
+                document.getElementById('materialLengthError').classList.add('show');
+                hasError = true;
+            }
+
+            if (materialWidth <= 0) {
+                document.getElementById('materialWidthError').classList.add('show');
                 hasError = true;
             }
 
@@ -441,17 +479,22 @@
             
             const engraveMinutes = parseClockToMinutes(document.getElementById('engraveTime').value);
             const engravePricePerItem = (engraveMinutes / 60) * 30;
+            const materialArea = materialLength * materialWidth;
+            const materialPricePerItem = materialArea * 1.1 * material.pricePerSqm;
 
-            const pricePerItem = (length * pricePerMeter) + engravePricePerItem;
+            const pricePerItem = (length * pricePerMeter) + engravePricePerItem + materialPricePerItem;
             const totalPrice = pricePerItem * quantity;
 
             document.getElementById('resultPrice').textContent = pricePerItem.toFixed(2);
+            document.getElementById('resultMaterialPrice').textContent = materialPricePerItem.toFixed(2);
             document.getElementById('resultTotalPrice').textContent = totalPrice.toFixed(2);
             document.getElementById('result').classList.add('show');
         }
 
         function resetForm() {
             document.getElementById('length').value = '0';
+            document.getElementById('materialLength').value = '0';
+            document.getElementById('materialWidth').value = '0';
             document.getElementById('engraveTime').value = '00:00';
             document.getElementById('engraveTime').dataset.minutes = '0';
             document.getElementById('quantity').value = '1';
@@ -459,10 +502,13 @@
             document.getElementById('tariff').innerHTML = '<option value="">Сначала выберите материал</option>';
             document.getElementById('result').classList.remove('show');
             document.getElementById('resultPrice').textContent = '0';
+            document.getElementById('resultMaterialPrice').textContent = '0';
             document.getElementById('resultTotalPrice').textContent = '0';
             
             // Очищаем ошибки
             document.getElementById('lengthError').classList.remove('show');
+            document.getElementById('materialLengthError').classList.remove('show');
+            document.getElementById('materialWidthError').classList.remove('show');
             document.getElementById('quantityError').classList.remove('show');
             document.getElementById('materialError').classList.remove('show');
             document.getElementById('tariffError').classList.remove('show');
