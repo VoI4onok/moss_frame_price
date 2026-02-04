@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Калькулятор раскроя коробки</title>
+    <style>
+      :root {
+        --bg: #f7f2ea;
+        --ink: #1a1a1a;
+        --muted: #6b5f50;
+        --accent: #2c5d63;
+        --accent-2: #d9a441;
+        --card: #fffaf2;
+        --line: #e7dcc9;
+        --shadow: 0 12px 24px rgba(17, 17, 17, 0.08);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "PT Sans", "Segoe UI", Tahoma, sans-serif;
+        color: var(--ink);
+        background: radial-gradient(1200px 800px at 10% -10%, #fff3d6 0%, transparent 60%),
+          radial-gradient(900px 700px at 110% 10%, #e6f1ef 0%, transparent 60%),
+          var(--bg);
+      }
+      main {
+        max-width: 980px;
+        margin: 32px auto 64px;
+        padding: 0 20px;
+      }
+      h1 {
+        font-family: "PT Serif", Georgia, serif;
+        font-size: 32px;
+        margin: 8px 0 4px;
+      }
+      .subtitle {
+        color: var(--muted);
+        margin: 0 0 24px;
+      }
+      .grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: var(--shadow);
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      input[type="number"], select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font-size: 15px;
+      }
+      .row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      }
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .toggle input { transform: scale(1.1); }
+      .btn {
+        margin-top: 12px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+      }
+      .btn.secondary {
+        background: #fff;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 6px;
+      }
+      th, td {
+        border-bottom: 1px solid var(--line);
+        padding: 8px 6px;
+        text-align: left;
+      }
+      th { color: var(--muted); font-weight: 600; }
+      .pill {
+        display: inline-block;
+        background: #f1e7d7;
+        color: #5b4a34;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .warn {
+        color: #8a3a1f;
+        background: #fde9df;
+        border: 1px solid #f2c8b6;
+        padding: 10px 12px;
+        border-radius: 10px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Калькулятор коробки для картины</h1>
+      <p class="subtitle">Вводите размеры картины — получаете размеры фанеры и реек.</p>
+
+      <div class="grid">
+        <section class="card">
+          <h2>Размеры картины</h2>
+          <div class="row">
+            <div>
+              <label for="length">Длина (см)</label>
+              <input id="length" type="number" min="1" value="60" />
+            </div>
+            <div>
+              <label for="height">Высота (см)</label>
+              <input id="height" type="number" min="1" value="40" />
+            </div>
+            <div>
+              <label for="thickness">Толщина (см)</label>
+              <input id="thickness" type="number" min="0.1" step="0.1" value="4" />
+            </div>
+          </div>
+
+          <div class="toggle">
+            <input id="foam" type="checkbox" />
+            <label for="foam">Добавить пенопласт (+4 см по длине/высоте/толщине)</label>
+          </div>
+
+          <button class="btn" id="calc">Рассчитать</button>
+          <button class="btn secondary" id="reset">Сбросить</button>
+        </section>
+
+        <section class="card">
+          <h2>Материалы</h2>
+          <div class="row">
+            <div>
+              <label for="plywood">Толщина фанеры (мм)</label>
+              <select id="plywood">
+                <option value="4">4 мм</option>
+                <option value="8">8 мм</option>
+                <option value="6">6 мм</option>
+                <option value="10">10 мм</option>
+              </select>
+            </div>
+            <div>
+              <label for="sheetW">Лист фанеры, ширина (см)</label>
+              <input id="sheetW" type="number" min="1" value="125" />
+            </div>
+            <div>
+              <label for="sheetL">Лист фанеры, длина (см)</label>
+              <input id="sheetL" type="number" min="1" value="250" />
+            </div>
+          </div>
+          <p class="note">Рейки: сечение 15×30 мм. Для расчёта длины вычитаем ширину 30 мм.</p>
+        </section>
+      </div>
+
+      <div class="grid" style="margin-top: 20px;">
+        <section class="card">
+          <h2>Фанера (раскрой деталей)</h2>
+          <div id="plywoodResult"></div>
+        </section>
+        <section class="card">
+          <h2>Рейки (длины)</h2>
+          <div id="slatsResult"></div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const el = (id) => document.getElementById(id);
+
+      function round1(n) {
+        return Math.round(n * 10) / 10;
+      }
+
+      function calc() {
+        const length = parseFloat(el('length').value || 0);
+        const height = parseFloat(el('height').value || 0);
+        const thickness = parseFloat(el('thickness').value || 0);
+        const foam = el('foam').checked;
+
+        const plyMm = parseFloat(el('plywood').value || 0);
+        const plyCm = plyMm / 10;
+
+        const sheetW = parseFloat(el('sheetW').value || 0);
+        const sheetL = parseFloat(el('sheetL').value || 0);
+
+        const foamAdd = foam ? 4 : 0; // см
+        const railThk = 1.5; // 15 мм
+        const railW = 3.0; // 30 мм
+
+        const L = length + foamAdd;
+        const H = height + foamAdd;
+        const T = thickness + foamAdd;
+
+        // Лицо: (L,H) + фанера по 4 сторонам + рейка по 4 сторонам
+        const faceL = L + (2 * plyCm) + (2 * railThk);
+        const faceH = H + (2 * plyCm) + (2 * railThk);
+
+        // Бок: (H,T) без добавок, кроме пенопласта
+        const sideH = H;
+        const sideT = T;
+
+        // Крышка: (L,T) + фанера по длине 2 стороны + рейка по толщине 2 стороны
+        const lidL = L + (2 * plyCm);
+        const lidT = T + (2 * railThk);
+
+        const plywoodHtml = `
+          <table>
+            <thead>
+              <tr><th>Деталь</th><th>Размер (см)</th><th>Кол-во</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Лицо</td><td>${round1(faceL)} × ${round1(faceH)}</td><td>2</td></tr>
+              <tr><td>Бок</td><td>${round1(sideH)} × ${round1(sideT)}</td><td>2</td></tr>
+              <tr><td>Крышка</td><td>${round1(lidL)} × ${round1(lidT)}</td><td>2</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Лист фанеры: ${sheetW} × ${sheetL} см. Раскладку на лист пока считаем вручную.</p>
+        `;
+
+        // Рейки
+        const faceRailLong = faceL; // 4 шт
+        const faceRailShort = faceH - (2 * railW); // 6 шт
+
+        const sideRailLong = sideH; // 4 шт
+        const sideRailShort = sideT - (2 * railW); // 6 шт
+
+        const lidRailLong = lidL; // 4 шт
+        const lidRailShort = lidT - (2 * railW); // 6 шт
+
+        const slatsHtml = `
+          <table>
+            <thead>
+              <tr><th>Сторона</th><th>Длина рейки (см)</th><th>Кол-во</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Лицо</td><td>${round1(faceRailLong)}</td><td>4</td></tr>
+              <tr><td>Лицо</td><td>${round1(faceRailShort)}</td><td>6</td></tr>
+              <tr><td>Бок</td><td>${round1(sideRailLong)}</td><td>4</td></tr>
+              <tr><td>Бок</td><td>${round1(sideRailShort)}</td><td>6</td></tr>
+              <tr><td>Крышка</td><td>${round1(lidRailLong)}</td><td>4</td></tr>
+              <tr><td>Крышка</td><td>${round1(lidRailShort)}</td><td>6</td></tr>
+            </tbody>
+          </table>
+        `;
+
+        el('plywoodResult').innerHTML = plywoodHtml;
+        el('slatsResult').innerHTML = slatsHtml;
+
+        const warnings = [];
+        if (faceRailShort <= 0 || sideRailShort <= 0 || lidRailShort <= 0) {
+          warnings.push('Некоторые короткие рейки получились с нулевой или отрицательной длиной. Проверьте толщину картины/пенопласта.');
+        }
+
+        if (warnings.length) {
+          el('slatsResult').innerHTML += `<div class="warn">${warnings.join(' ')}</div>`;
+        }
+      }
+
+      el('calc').addEventListener('click', calc);
+      el('reset').addEventListener('click', () => {
+        el('length').value = 60;
+        el('height').value = 40;
+        el('thickness').value = 4;
+        el('foam').checked = false;
+        el('plywood').value = 4;
+        el('sheetW').value = 125;
+        el('sheetL').value = 250;
+        calc();
+      });
+
+      calc();
+    </script>
+  </body>
+</html>
