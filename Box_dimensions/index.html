@@ -512,6 +512,16 @@
         const lidL = L + (2 * plyM) + (2 * railThk);
         const lidT = T;
 
+        // Рейки
+        const faceRailLong = faceL; // 4 шт
+        const faceRailShort = faceH - (2 * railW); // 6 шт
+
+        const sideRailLong = sideH; // 4 шт
+        const sideRailShort = sideT - (2 * railW); // 6 шт
+
+        const lidRailLong = lidL; // 4 шт
+        const lidRailShort = lidT - (2 * railW); // 6 шт
+
         const totalPlywoodArea = (faceL * faceH * 2) + (sideH * sideT * 2) + (lidL * lidT * 2);
         const plywoodAreaWithWaste = totalPlywoodArea * 1.1;
 
@@ -542,16 +552,6 @@
           <p class="note">Стоимость фанеры: ${roundTo(plywoodCost, 2)} € (${roundTo(plywoodPricePerM2, 2)} €/м²).</p>
           <p class="note">Рейки: ${roundTo(railTotalLength, 2)} м. С отходами (10%): ${roundTo(railLengthWithWaste, 2)} м. Стоимость: ${roundTo(railCost, 2)} €.</p>
         `;
-
-        // Рейки
-        const faceRailLong = faceL; // 4 шт
-        const faceRailShort = faceH - (2 * railW); // 6 шт
-
-        const sideRailLong = sideH; // 4 шт
-        const sideRailShort = sideT - (2 * railW); // 6 шт
-
-        const lidRailLong = lidL; // 4 шт
-        const lidRailShort = lidT - (2 * railW); // 6 шт
 
         const railItems = [
           { len: faceRailLong, count: 4, side: 'Фасад' },
