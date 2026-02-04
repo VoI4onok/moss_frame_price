@@ -643,25 +643,25 @@
           { name: 'Фасад', w: faceL, h: faceH },
           { name: 'Бок', w: sideT, h: sideH },
           { name: 'Крышка', w: lidL, h: lidT },
-        ];
+        ].map((p) => (p.h > p.w ? { ...p, w: p.h, h: p.w } : p));
 
-        const previewW = 520;
-        const rowGap = 16;
+        const previewW = 700;
+        const rowGap = 14;
         const pad = 10;
         const maxPartW = Math.max(...parts.map((p) => p.w));
-        const scale = maxPartW > 0 ? (previewW - pad * 2) / maxPartW : 1;
+        const scale = maxPartW > 0 ? (previewW - pad * 2) / maxPartW * 0.5 : 1;
 
         let y = pad;
         const rects = parts.map((p) => {
           const w = Math.max(2, p.w * scale);
           const h = Math.max(2, p.h * scale);
           const x = pad;
-          const labelX = x + w + 10;
-          const labelY = y + 14;
+          const cx = x + w / 2;
+          const cy = y + h / 2;
           const rect = `
-            <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" ry="6" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.4)"/>
-            <text x="${labelX}" y="${labelY}" fill="#f5f5f5" font-size="12">${p.name}</text>
-            <text x="${labelX}" y="${labelY + 14}" fill="#bdbdbd" font-size="11">${formatValue(p.w)} × ${formatValue(p.h)} ${unitLabel()}</text>
+            <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.4)"/>
+            <text x="${cx}" y="${cy - 2}" fill="#f5f5f5" font-size="12" text-anchor="middle">${p.name}</text>
+            <text x="${cx}" y="${cy + 12}" fill="#bdbdbd" font-size="11" text-anchor="middle">${formatValue(p.w)} × ${formatValue(p.h)} ${unitLabel()}</text>
           `;
           y += h + rowGap;
           return rect;
