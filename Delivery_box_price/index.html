@@ -213,6 +213,7 @@
                 inputmode="decimal"
                 pattern="[0-9]*[\.,]?[0-9]*"
                 placeholder="Введите длину" 
+                value="0"
             >
             <div class="unit">м</div>
         </div>
@@ -225,6 +226,7 @@
                 inputmode="decimal"
                 pattern="[0-9]*[\.,]?[0-9]*"
                 placeholder="Введите ширину" 
+                value="0"
             >
             <div class="unit">м</div>
         </div>
@@ -237,6 +239,7 @@
                 inputmode="decimal"
                 pattern="[0-9]*[\.,]?[0-9]*"
                 placeholder="Введите высоту" 
+                value="0"
             >
             <div class="unit">м</div>
             <div class="error" id="error"></div>
@@ -388,9 +391,9 @@
         }
 
         function resetCalculator() {
-            lengthInput.value = '';
-            widthInput.value = '';
-            heightInput.value = '';
+            lengthInput.value = '0';
+            widthInput.value = '0';
+            heightInput.value = '0';
             calculatedVolumeDiv.textContent = '0';
             resultDiv.classList.remove('show');
             errorDiv.classList.remove('show');
@@ -406,6 +409,7 @@
         // Фокус на первое поле при загрузке
         window.addEventListener('load', function() {
             lengthInput.focus();
+            updateVolume();
         });
     </script>
 </body>
