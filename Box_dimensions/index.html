@@ -197,9 +197,6 @@
       .sheet-svg .piece {
         cursor: grab;
       }
-      .sheet-svg .piece.overlap .piece-rect {
-        stroke: #ff5c5c;
-      }
       .sheet-svg .rotate-handle,
       .sheet-svg .rotate-text {
         cursor: pointer;
@@ -390,7 +387,6 @@
         <section class="card">
           <h2>Раскрой фанеры</h2>
           <div id="plywoodResult"></div>
-          <div id="sheetCutPreview" style="margin-top: 6px;"></div>
           <p class="note">Фасад = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
         </section>
         <section class="card">
@@ -433,6 +429,10 @@
             </tbody>
           </table>
           <p class="note">Цена за м² рассчитана по площади листа.</p>
+        </section>
+        <section class="card">
+          <h2>Расстановка деталей на листе</h2>
+          <div id="sheetCutPreview" style="margin-top: 6px;"></div>
         </section>
         <section class="card">
           <h2>Пояснения (можно раскрыть)</h2>
@@ -1022,24 +1022,19 @@
           const sheetInfo = { w: sheet.w, h: sheet.h };
           const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === dragSheetIndex);
           applySnap(p, others, sheetInfo);
-          const isOverlap = others.some((o) => overlaps(p, o));
-          if (!isOverlap) {
-            lastValid = { x: p.x, y: p.y, sheetIndex: p.sheetIndex };
-          }
           renderPieces();
-          const g = svg.querySelector(`.piece[data-id="${p.id}"]`);
-          if (g) g.classList.toggle('overlap', isOverlap);
         }
 
         function onPointerUp() {
           if (!dragId) return;
           const p = piecesById.get(dragId);
-          const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === dragSheetIndex);
-          const isOverlap = others.some((o) => overlaps(p, o));
-          if (isOverlap && lastValid) {
-            p.x = lastValid.x;
-            p.y = lastValid.y;
-          }
+          // Snap to sheet edges on release
+          const dims = getPieceDims(p);
+          const edgeSnap = (delta) => (Math.abs(delta) <= snap ? delta : 0);
+          p.x += edgeSnap(0 - p.x);
+          p.x += edgeSnap((sheet.w - dims.w) - p.x);
+          p.y += edgeSnap(0 - p.y);
+          p.y += edgeSnap((sheet.h - dims.h) - p.y);
           renderPieces();
           dragId = null;
           dragSheetIndex = null;
@@ -1060,9 +1055,6 @@
             if (!p) return;
             if (target.classList.contains('rotate-handle') || target.classList.contains('rotate-text')) {
               p.rot = !p.rot;
-              const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === idx);
-              const isOverlap = others.some((o) => overlaps(p, o));
-              if (isOverlap) p.rot = !p.rot;
               renderPieces();
               saveManual();
               return;
