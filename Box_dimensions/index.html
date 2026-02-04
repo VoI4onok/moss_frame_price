@@ -323,7 +323,7 @@
         <section class="card">
           <h2>Фанера (раскрой деталей)</h2>
           <div id="plywoodResult"></div>
-          <div id="plywoodPreview" style="margin-top: 6px;"></div>
+          <div id="sheetCutPreview" style="margin-top: 6px;"></div>
           <p class="note">Фасад = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
         </section>
         <section class="card">
@@ -673,42 +673,77 @@
         `;
         el('slatsPreview').innerHTML = slatsSvg;
 
-        const parts = [
-          { name: 'Фасад', w: faceL, h: faceH },
-          { name: 'Бок', w: sideT, h: sideH },
-          { name: 'Крышка', w: lidL, h: lidT },
-        ].map((p) => (p.h > p.w ? { ...p, w: p.h, h: p.w } : p));
+        const sheet = { w: sheetW, h: sheetL };
+        const items = [
+          { name: 'Фасад', w: faceL, h: faceH, count: 2 },
+          { name: 'Бок', w: sideT, h: sideH, count: 2 },
+          { name: 'Крышка', w: lidL, h: lidT, count: 2 },
+        ];
 
-        const previewW = 720;
-        const rowGap = 8;
-        const pad = 6;
-        const maxPartW = Math.max(...parts.map((p) => p.w));
-        const scale = maxPartW > 0 ? (previewW - pad * 2) / maxPartW : 1;
+        const flatItems = [];
+        items.forEach((it) => {
+          for (let i = 0; i < it.count; i += 1) {
+            flatItems.push({ name: it.name, w: it.w, h: it.h });
+          }
+        });
 
-        let y = pad;
-        const rects = parts.map((p) => {
-          const w = Math.max(2, p.w * scale);
-          const h = Math.max(2, p.h * scale);
-          const x = pad;
-          const cx = x + w / 2;
-          const cy = y + h / 2;
-          const rect = `
-            <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.4)"/>
-            <text x="${x + 6}" y="${y + 18}" fill="#f5f5f5" font-size="14" text-anchor="start">${p.name}</text>
-            <text x="${cx}" y="${cy + 6}" fill="#e0e0e0" font-size="14" text-anchor="middle">${formatValue(p.w)} × ${formatValue(p.h)} ${unitLabel()}</text>
+        // Simple shelf packing: sort by height desc
+        flatItems.sort((a, b) => b.h - a.h);
+
+        const placements = [];
+        let cursorX = 0;
+        let cursorY = 0;
+        let shelfH = 0;
+        let fits = true;
+
+        flatItems.forEach((it) => {
+          if (it.w > sheet.w || it.h > sheet.h) {
+            fits = false;
+            return;
+          }
+          if (cursorX + it.w > sheet.w) {
+            cursorX = 0;
+            cursorY += shelfH;
+            shelfH = 0;
+          }
+          if (cursorY + it.h > sheet.h) {
+            fits = false;
+            return;
+          }
+          placements.push({ ...it, x: cursorX, y: cursorY });
+          cursorX += it.w;
+          shelfH = Math.max(shelfH, it.h);
+        });
+
+        const sheetPreviewW = 720;
+        const sheetPad = 8;
+        const sheetScale = sheet.w > 0 ? (sheetPreviewW - sheetPad * 2) / sheet.w : 1;
+        const sheetPreviewH = sheet.h * sheetScale + sheetPad * 2;
+
+        const cutLines = placements.map((p) => {
+          const x = sheetPad + p.x * sheetScale;
+          const y = sheetPad + p.y * sheetScale;
+          const w = p.w * sheetScale;
+          const h = p.h * sheetScale;
+          const label = `${p.name} ${formatValue(p.w)}×${formatValue(p.h)} ${unitLabel()}`;
+          return `
+            <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(255,255,255,0.06)" stroke="#4ad4ff" stroke-dasharray="6 4" stroke-width="1.5"/>
+            <text x="${x + 6}" y="${y + 16}" fill="#eaf7ff" font-size="11">${label}</text>
           `;
-          y += h + rowGap;
-          return rect;
         }).join('');
 
-        const svgH = y + pad - rowGap;
-        const previewSvg = `
-          <svg viewBox="0 0 ${previewW} ${svgH}" width="100%" height="${svgH}" aria-label="Эскиз деталей фанеры">
-            ${rects}
+        const sheetSvg = `
+          <svg viewBox="0 0 ${sheetPreviewW} ${sheetPreviewH}" width="100%" height="${sheetPreviewH}" aria-label="Раскрой фанеры">
+            <rect x="${sheetPad}" y="${sheetPad}" width="${sheet.w * sheetScale}" height="${sheet.h * sheetScale}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.4)"/>
+            ${cutLines}
           </svg>
         `;
 
-        el('plywoodPreview').innerHTML = previewSvg;
+        const sheetNote = fits
+          ? ''
+          : '<div class="warn">В один лист не помещается. Увеличьте размер листа или используйте несколько.</div>';
+
+        el('sheetCutPreview').innerHTML = sheetSvg + sheetNote;
 
         const warnings = [];
         if (faceRailShort <= 0 || sideRailShort <= 0 || lidRailShort <= 0) {
