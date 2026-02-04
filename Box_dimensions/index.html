@@ -6,16 +6,16 @@
     <title>Калькулятор раскроя коробки</title>
     <style>
       :root {
-        --bg: #f3efe6;
-        --ink: #1b1b1b;
-        --muted: #6c5b4d;
-        --accent: #0f5e63;
-        --accent-2: #f07d22;
-        --accent-3: #e9c46a;
-        --card: #fffdf8;
-        --line: #e6d9c6;
-        --shadow: 0 18px 40px rgba(18, 18, 18, 0.12);
-        --ring: 0 0 0 3px rgba(240, 125, 34, 0.2);
+        --bg: #0c0c0c;
+        --ink: #f5f5f5;
+        --muted: #bdbdbd;
+        --accent: #ffffff;
+        --accent-2: #d9d9d9;
+        --accent-3: #7a7a7a;
+        --card: rgba(255, 255, 255, 0.06);
+        --line: rgba(255, 255, 255, 0.12);
+        --shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+        --ring: 0 0 0 3px rgba(255, 255, 255, 0.18);
       }
       * { box-sizing: border-box; }
       body {
@@ -23,9 +23,9 @@
         font-family: "Manrope", "Segoe UI", Tahoma, sans-serif;
         color: var(--ink);
         background:
-          radial-gradient(700px 400px at 8% 0%, rgba(240, 125, 34, 0.18) 0%, transparent 65%),
-          radial-gradient(900px 600px at 100% 10%, rgba(15, 94, 99, 0.2) 0%, transparent 60%),
-          linear-gradient(120deg, #fbf6ec 0%, #f4ede1 40%, #f8f3ea 100%);
+          radial-gradient(900px 600px at 10% 0%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+          radial-gradient(700px 500px at 90% 10%, rgba(255, 255, 255, 0.06) 0%, transparent 60%),
+          linear-gradient(140deg, #0a0a0a 0%, #141414 45%, #0c0c0c 100%);
       }
       main {
         max-width: 980px;
@@ -42,9 +42,7 @@
         color: var(--muted);
         margin: 0 0 24px;
       }
-      .subtitle strong {
-        color: var(--accent);
-      }
+      .subtitle strong { color: var(--accent); }
       .grid {
         display: grid;
         gap: 20px;
@@ -52,7 +50,7 @@
       }
       .card {
         background: var(--card);
-        border: 1px solid rgba(230, 217, 198, 0.9);
+        border: 1px solid var(--line);
         border-radius: 18px;
         padding: 18px;
         box-shadow: var(--shadow);
@@ -67,7 +65,7 @@
         width: 180px;
         height: 180px;
         border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, rgba(233, 196, 106, 0.35), transparent 70%);
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08), transparent 70%);
         pointer-events: none;
       }
       label {
@@ -79,8 +77,9 @@
         width: 100%;
         padding: 10px 12px;
         border-radius: 12px;
-        border: 1px solid rgba(230, 217, 198, 0.9);
-        background: #fff;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--ink);
         font-size: 15px;
         transition: box-shadow 0.2s ease, border-color 0.2s ease;
       }
@@ -103,8 +102,8 @@
       .toggle input { transform: scale(1.1); }
       .btn {
         margin-top: 12px;
-        background: linear-gradient(135deg, var(--accent) 0%, #157b80 100%);
-        color: #fff;
+        background: linear-gradient(135deg, #f5f5f5 0%, #cfcfcf 100%);
+        color: #0b0b0b;
         border: none;
         padding: 12px 16px;
         border-radius: 12px;
@@ -115,12 +114,12 @@
       }
       .btn:hover {
         transform: translateY(-1px);
-        box-shadow: 0 8px 20px rgba(15, 94, 99, 0.25);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
       }
       .btn.secondary {
-        background: #fff8ef;
-        color: #7a3e0f;
-        border: 1px solid #f0c193;
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--line);
       }
       table {
         width: 100%;
@@ -136,8 +135,8 @@
       th { color: var(--muted); font-weight: 600; }
       .pill {
         display: inline-block;
-        background: #ffe4cc;
-        color: #8a3a1f;
+        background: rgba(255, 255, 255, 0.12);
+        color: #f0f0f0;
         padding: 4px 8px;
         border-radius: 999px;
         font-size: 12px;
@@ -148,10 +147,10 @@
       }
       details.help {
         margin-top: 8px;
-        border: 1px dashed rgba(230, 217, 198, 0.9);
+        border: 1px dashed var(--line);
         border-radius: 10px;
         padding: 8px 10px;
-        background: #fff8ef;
+        background: rgba(255, 255, 255, 0.04);
       }
       details.help > summary {
         cursor: pointer;
@@ -163,9 +162,9 @@
         display: none;
       }
       .warn {
-        color: #8a3a1f;
-        background: #fde9df;
-        border: 1px solid #f2c8b6;
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         padding: 10px 12px;
         border-radius: 10px;
         margin-top: 10px;
