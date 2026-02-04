@@ -6,23 +6,26 @@
     <title>Калькулятор раскроя коробки</title>
     <style>
       :root {
-        --bg: #f7f2ea;
-        --ink: #1a1a1a;
-        --muted: #6b5f50;
-        --accent: #2c5d63;
-        --accent-2: #d9a441;
-        --card: #fffaf2;
-        --line: #e7dcc9;
-        --shadow: 0 12px 24px rgba(17, 17, 17, 0.08);
+        --bg: #f3efe6;
+        --ink: #1b1b1b;
+        --muted: #6c5b4d;
+        --accent: #0f5e63;
+        --accent-2: #f07d22;
+        --accent-3: #e9c46a;
+        --card: #fffdf8;
+        --line: #e6d9c6;
+        --shadow: 0 18px 40px rgba(18, 18, 18, 0.12);
+        --ring: 0 0 0 3px rgba(240, 125, 34, 0.2);
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        font-family: "PT Sans", "Segoe UI", Tahoma, sans-serif;
+        font-family: "Manrope", "Segoe UI", Tahoma, sans-serif;
         color: var(--ink);
-        background: radial-gradient(1200px 800px at 10% -10%, #fff3d6 0%, transparent 60%),
-          radial-gradient(900px 700px at 110% 10%, #e6f1ef 0%, transparent 60%),
-          var(--bg);
+        background:
+          radial-gradient(700px 400px at 8% 0%, rgba(240, 125, 34, 0.18) 0%, transparent 65%),
+          radial-gradient(900px 600px at 100% 10%, rgba(15, 94, 99, 0.2) 0%, transparent 60%),
+          linear-gradient(120deg, #fbf6ec 0%, #f4ede1 40%, #f8f3ea 100%);
       }
       main {
         max-width: 980px;
@@ -30,13 +33,17 @@
         padding: 0 20px;
       }
       h1 {
-        font-family: "PT Serif", Georgia, serif;
-        font-size: 32px;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 36px;
         margin: 8px 0 4px;
+        letter-spacing: 0.2px;
       }
       .subtitle {
         color: var(--muted);
         margin: 0 0 24px;
+      }
+      .subtitle strong {
+        color: var(--accent);
       }
       .grid {
         display: grid;
@@ -45,10 +52,23 @@
       }
       .card {
         background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 16px;
+        border: 1px solid rgba(230, 217, 198, 0.9);
+        border-radius: 18px;
         padding: 18px;
         box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+      .card::after {
+        content: "";
+        position: absolute;
+        top: -80px;
+        right: -80px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, rgba(233, 196, 106, 0.35), transparent 70%);
+        pointer-events: none;
       }
       label {
         display: block;
@@ -58,10 +78,16 @@
       input[type="number"], select {
         width: 100%;
         padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
+        border-radius: 12px;
+        border: 1px solid rgba(230, 217, 198, 0.9);
         background: #fff;
         font-size: 15px;
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      input[type="number"]:focus, select:focus {
+        outline: none;
+        border-color: var(--accent-2);
+        box-shadow: var(--ring);
       }
       .row {
         display: grid;
@@ -77,7 +103,7 @@
       .toggle input { transform: scale(1.1); }
       .btn {
         margin-top: 12px;
-        background: var(--accent);
+        background: linear-gradient(135deg, var(--accent) 0%, #157b80 100%);
         color: #fff;
         border: none;
         padding: 12px 16px;
@@ -85,11 +111,16 @@
         font-weight: 600;
         cursor: pointer;
         width: 100%;
+        transition: transform 0.15s ease, box-shadow 0.2s ease;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(15, 94, 99, 0.25);
       }
       .btn.secondary {
-        background: #fff;
-        color: var(--accent);
-        border: 1px solid var(--accent);
+        background: #fff8ef;
+        color: #7a3e0f;
+        border: 1px solid #f0c193;
       }
       table {
         width: 100%;
@@ -105,8 +136,8 @@
       th { color: var(--muted); font-weight: 600; }
       .pill {
         display: inline-block;
-        background: #f1e7d7;
-        color: #5b4a34;
+        background: #ffe4cc;
+        color: #8a3a1f;
         padding: 4px 8px;
         border-radius: 999px;
         font-size: 12px;
@@ -117,10 +148,10 @@
       }
       details.help {
         margin-top: 8px;
-        border: 1px dashed var(--line);
+        border: 1px dashed rgba(230, 217, 198, 0.9);
         border-radius: 10px;
         padding: 8px 10px;
-        background: #fffdf7;
+        background: #fff8ef;
       }
       details.help > summary {
         cursor: pointer;
