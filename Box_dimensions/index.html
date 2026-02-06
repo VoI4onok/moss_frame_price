@@ -132,7 +132,26 @@
         padding: 8px 6px;
         text-align: left;
       }
+      tbody tr:nth-child(odd) {
+        background: rgba(255, 255, 255, 0.03);
+      }
       th { color: var(--muted); font-weight: 600; }
+      .value-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid var(--line);
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .soft-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+        margin-top: 8px;
+      }
       a {
         color: #0b0b0b;
         text-decoration: none;
@@ -729,17 +748,19 @@
         const foamCost = foam ? foamAreaWithWaste * foamPricePerM2 : 0;
 
         const plywoodHtml = `
-          <table>
-            <thead>
-              <tr><th>Деталь</th><th>Размер (см)</th><th>Кол-во</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>Фасад</td><td>${formatValue(faceL)} × ${formatValue(faceH)} ${unitLabel()}</td><td>2</td></tr>
-              <tr><td>Бок</td><td>${formatValue(sideH)} × ${formatValue(sideT)} ${unitLabel()}</td><td>2</td></tr>
-              <tr><td>Крышка</td><td>${formatValue(lidL)} × ${formatValue(lidT)} ${unitLabel()}</td><td>2</td></tr>
-            </tbody>
-          </table>
-          <p class="note">Лист фанеры: ${formatValue(sheetW)} × ${formatValue(sheetL)} ${unitLabel()}. Раскладку на лист пока считаем вручную.</p>
+          <div class="soft-card">
+            <table>
+              <thead>
+                <tr><th>Деталь</th><th>Размер</th><th>Кол-во</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Фасад</td><td><span class="value-badge">${formatValue(faceL)} × ${formatValue(faceH)} ${unitLabel()}</span></td><td>2</td></tr>
+                <tr><td>Бок</td><td><span class="value-badge">${formatValue(sideH)} × ${formatValue(sideT)} ${unitLabel()}</span></td><td>2</td></tr>
+                <tr><td>Крышка</td><td><span class="value-badge">${formatValue(lidL)} × ${formatValue(lidT)} ${unitLabel()}</span></td><td>2</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">Лист фанеры: <span class="value-badge">${formatValue(sheetW)} × ${formatValue(sheetL)} ${unitLabel()}</span>. Раскладку на лист пока считаем вручную.</p>
         `;
 
         const costHtml = `
@@ -771,8 +792,8 @@
         const groupedList = Array.from(grouped.values()).sort((a, b) => b.len - a.len);
 
         const slatsRows = groupedList.map((item) => {
-          const base = `${formatValue(item.len)} ${unitLabel()}`;
-          const adjusted = railSubtractMm > 0 ? ` (${formatValue(item.len - railSubtractM)} ${unitLabel()})` : '';
+          const base = `<span class="value-badge">${formatValue(item.len)} ${unitLabel()}</span>`;
+          const adjusted = railSubtractMm > 0 ? ` <span class="note">(${formatValue(item.len - railSubtractM)} ${unitLabel()})</span>` : '';
           const tooltipParts = Object.entries(item.bySide)
             .filter(([, cnt]) => cnt > 0)
             .map(([side, cnt]) => `${side}: ${cnt}`);
@@ -781,14 +802,16 @@
         }).join('');
 
         const slatsHtml = `
-          <table>
-            <thead>
-              <tr><th>Длина рейки</th><th>Кол-во</th></tr>
-            </thead>
-            <tbody>
-              ${slatsRows}
-            </tbody>
-          </table>
+          <div class="soft-card">
+            <table>
+              <thead>
+                <tr><th>Длина рейки</th><th>Кол-во</th></tr>
+              </thead>
+              <tbody>
+                ${slatsRows}
+              </tbody>
+            </table>
+          </div>
         `;
 
         const formulaHtml = `
