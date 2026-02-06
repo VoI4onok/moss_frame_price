@@ -332,6 +332,15 @@
 
           <button class="btn" id="calc">Рассчитать</button>
           <button class="btn secondary" id="reset">Сбросить</button>
+          <div style="margin-top: 12px;">
+            <label>Сохранение проекта</label>
+            <div class="row">
+              <button class="btn secondary" id="exportBtn" type="button">Скачать файл</button>
+              <button class="btn secondary" id="importBtn" type="button">Загрузить файл</button>
+            </div>
+            <input id="importFile" type="file" accept="application/json" style="display:none" />
+            <p class="note">Файл можно сохранить в Telegram и потом загрузить обратно.</p>
+          </div>
         </section>
 
         <section class="card">
@@ -552,6 +561,23 @@
         } catch {
           return null;
         }
+      }
+
+      function getCurrentStateFromInputs() {
+        return {
+          unit: el('unit').value,
+          length: toMeters(parseFloat(el('length').value || 0)),
+          height: toMeters(parseFloat(el('height').value || 0)),
+          thickness: toMeters(parseFloat(el('thickness').value || 0)),
+          foam: el('foam').checked,
+          plywood: parseFloat(el('plywood').value || 0),
+          sheetW: toMeters(parseFloat(el('sheetW').value || 0)),
+          sheetL: toMeters(parseFloat(el('sheetL').value || 0)),
+          railSubtractMm: parseFloat(el('railSubtractMm').value || 0),
+          sheetProductPrice: parseFloat(el('sheetProduct').value || 0),
+          bulkMode: el('bulkMode').value,
+          facadeSplitCount: parseInt(el('facadeSplit').value || '2', 10),
+        };
       }
 
       function layoutSignature(sheet, pieces) {
@@ -1278,6 +1304,65 @@
       ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL', 'railSubtractMm', 'sheetProduct', 'bulkMode', 'facadeSplit'].forEach((id) => {
         el(id).addEventListener('input', calc);
         el(id).addEventListener('change', calc);
+      });
+
+      el('exportBtn').addEventListener('click', () => {
+        calc();
+        const payload = {
+          version: 1,
+          savedAt: new Date().toISOString(),
+          state: getCurrentStateFromInputs(),
+          layout: (() => {
+            try {
+              const raw = localStorage.getItem(LAYOUT_KEY);
+              return raw ? JSON.parse(raw) : null;
+            } catch {
+              return null;
+            }
+          })(),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        const dt = new Date();
+        const ts = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}-${String(dt.getHours()).padStart(2, '0')}${String(dt.getMinutes()).padStart(2, '0')}`;
+        const unit = el('unit').value;
+        const sizeL = el('length').value || '0';
+        const sizeH = el('height').value || '0';
+        const sizeT = el('thickness').value || '0';
+        const safe = (v) => String(v).replace(/[^\d.,-]/g, '').replace(',', '.');
+        const sizeLabel = `${safe(sizeL)}x${safe(sizeH)}x${safe(sizeT)}${unit}`;
+        a.href = URL.createObjectURL(blob);
+        a.download = `box-${sizeLabel}-${ts}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+      });
+
+      el('importBtn').addEventListener('click', () => {
+        el('importFile').click();
+      });
+
+      el('importFile').addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(reader.result);
+            if (data.state) {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(data.state));
+            }
+            if (data.layout) {
+              localStorage.setItem(LAYOUT_KEY, JSON.stringify(data.layout));
+            }
+            init();
+          } catch {
+            alert('Не удалось загрузить файл. Проверьте формат.');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
       });
 
       addWheelStep('length', 0.01);
