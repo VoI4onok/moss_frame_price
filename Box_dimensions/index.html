@@ -392,6 +392,7 @@
             <div>
               <label for="facadeSplit">Если фасад не помещается</label>
               <select id="facadeSplit">
+                <option value="1">Не делить</option>
                 <option value="2">Делить на 2 части</option>
                 <option value="3">Делить на 3 части</option>
               </select>
@@ -1145,6 +1146,9 @@
         function onPointerUp() {
           if (!dragId) return;
           const p = piecesById.get(dragId);
+          const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === dragSheetIndex);
+          const sheetInfo = { w: sheet.w, h: sheet.h };
+          applySnap(p, others, sheetInfo);
           // Snap to sheet edges on release
           const dims = getPieceDims(p);
           const edgeSnap = (delta) => (Math.abs(delta) <= snap ? delta : 0);
