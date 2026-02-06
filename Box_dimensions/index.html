@@ -927,10 +927,10 @@
         el('costResult').innerHTML = costHtml;
 
         const sheet = { w: sheetW, h: sheetL };
-        const sheetPreviewW = 720;
+        const sheetPreviewW = 520;
         const sheetPad = 8;
-        const sheetScale = sheet.w > 0 ? (sheetPreviewW - sheetPad * 2) / sheet.w : 1;
-        const sheetPreviewH = sheet.h * sheetScale + sheetPad * 2;
+        const sheetScale = sheet.h > 0 ? (sheetPreviewW - sheetPad * 2) / sheet.h : 1;
+        const sheetPreviewH = sheet.w * sheetScale + sheetPad * 2;
 
         const pieceDefs = [
           { type: 'Фасад', w: faceL, h: faceH, count: 2 },
@@ -991,8 +991,8 @@
         const sheetsHtml = Array.from({ length: sheetsCount }, (_, idx) => `
           <div>
             <div class="pill" style="margin-top: 4px;">Лист ${idx + 1}</div>
-            <svg class="sheet-svg" data-sheet="${idx}" data-scale="${sheetScale}" data-pad="${sheetPad}" data-w="${sheet.w}" data-h="${sheet.h}" viewBox="0 0 ${sheetPreviewW} ${sheetPreviewH}" width="100%" height="${sheetPreviewH}" aria-label="Раскрой фанеры">
-              <rect class="sheet-rect" x="${sheetPad}" y="${sheetPad}" width="${sheet.w * sheetScale}" height="${sheet.h * sheetScale}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.4)"/>
+            <svg class="sheet-svg" data-sheet="${idx}" data-scale="${sheetScale}" data-pad="${sheetPad}" data-w="${sheet.h}" data-h="${sheet.w}" viewBox="0 0 ${sheetPreviewW} ${sheetPreviewH}" width="100%" height="${sheetPreviewH}" aria-label="Раскрой фанеры">
+              <rect class="sheet-rect" x="${sheetPad}" y="${sheetPad}" width="${sheet.h * sheetScale}" height="${sheet.w * sheetScale}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.4)"/>
             </svg>
           </div>
         `).join('');
@@ -1026,6 +1026,16 @@
 
         function getPieceDims(p) {
           return { w: p.rot ? p.h : p.w, h: p.rot ? p.w : p.h };
+        }
+
+        function toDisplay(p, dims) {
+          // Rotate display 90° clockwise (visual only)
+          return {
+            x: p.y,
+            y: sheet.w - p.x - dims.w,
+            w: dims.h,
+            h: dims.w,
+          };
         }
 
         function overlaps(a, b) {
@@ -1104,10 +1114,11 @@
             piecesById.forEach((p) => {
               if (p.sheetIndex !== idx) return;
               const dims = getPieceDims(p);
-              const x = pad + p.x * scale;
-              const y = pad + p.y * scale;
-              const w = Math.max(6, dims.w * scale);
-              const h = Math.max(6, dims.h * scale);
+              const disp = toDisplay(p, dims);
+              const x = pad + disp.x * scale;
+              const y = pad + disp.y * scale;
+              const w = Math.max(6, disp.w * scale);
+              const h = Math.max(6, disp.h * scale);
               const label = `${p.type} ${formatValue(p.w)}×${formatValue(p.h)} ${unitLabel()}`;
               const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
               g.setAttribute('class', 'piece');
@@ -1130,10 +1141,11 @@
           const scale = parseFloat(svg.dataset.scale);
           const pad = parseFloat(svg.dataset.pad);
           const dims = getPieceDims(p);
-          const x = pad + p.x * scale;
-          const y = pad + p.y * scale;
-          const w = Math.max(6, dims.w * scale);
-          const h = Math.max(6, dims.h * scale);
+          const disp = toDisplay(p, dims);
+          const x = pad + disp.x * scale;
+          const y = pad + disp.y * scale;
+          const w = Math.max(6, disp.w * scale);
+          const h = Math.max(6, disp.h * scale);
           const g = svg.querySelector(`.piece[data-id="${p.id}"]`);
           if (!g) return;
           const rect = g.querySelector('.piece-rect');
@@ -1176,7 +1188,9 @@
           const pad = parseFloat(svg.dataset.pad);
           const mx = (e.clientX - rect.left - pad) / scale;
           const my = (e.clientY - rect.top - pad) / scale;
-          dragStart = { offsetX: mx - p.x, offsetY: my - p.y };
+          const dims = getPieceDims(p);
+          const disp = toDisplay(p, dims);
+          dragStart = { offsetX: mx - disp.x, offsetY: my - disp.y };
           lastValid = { x: p.x, y: p.y, sheetIndex: p.sheetIndex };
         }
 
@@ -1189,8 +1203,11 @@
           const pad = parseFloat(svg.dataset.pad);
           const mx = (e.clientX - rect.left - pad) / scale;
           const my = (e.clientY - rect.top - pad) / scale;
-          p.x = mx - dragStart.offsetX;
-          p.y = my - dragStart.offsetY;
+          const dispX = mx - dragStart.offsetX;
+          const dispY = my - dragStart.offsetY;
+          const dims = getPieceDims(p);
+          p.y = dispX;
+          p.x = sheet.w - dispY - dims.w;
 
           const sheetInfo = { w: sheet.w, h: sheet.h };
           const others = Array.from(piecesById.values()).filter((o) => o.id !== p.id && o.sheetIndex === dragSheetIndex);
