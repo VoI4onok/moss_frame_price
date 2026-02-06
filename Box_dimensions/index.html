@@ -399,14 +399,6 @@
               </select>
             </div>
             <div>
-              <label for="sheetW">Лист фанеры, ширина (м)</label>
-              <input id="sheetW" type="number" min="0.1" step="0.01" value="1.25" />
-            </div>
-            <div>
-              <label for="sheetL">Лист фанеры, длина (м)</label>
-              <input id="sheetL" type="number" min="0.1" step="0.01" value="2.5" />
-            </div>
-            <div>
               <label for="sheetProduct">OSB 8 мм (цена за м²)</label>
               <select id="sheetProduct">
                 <option value="3.91">OSB 1.25×2.5 (3.91 €/м²)</option>
@@ -452,7 +444,6 @@
         <section class="card">
           <h2>Раскрой фанеры</h2>
           <div id="plywoodResult"></div>
-          <p class="note">Фасад = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
         </section>
         <section class="card">
           <h2>Раскрой реек</h2>
@@ -703,9 +694,12 @@
 
         const plyM = parseFloat(el('plywood').value || 0);
 
-        const sheetW = toMeters(parseFloat(el('sheetW').value || 0));
-        const sheetL = toMeters(parseFloat(el('sheetL').value || 0));
         const sheetProductPrice = parseFloat(el('sheetProduct').value || 0);
+        const sheetSize = el('sheetProduct').value === '3.91'
+          ? { w: 1.25, h: 2.5 }
+          : { w: 0.83, h: 1.25 };
+        const sheetW = sheetSize.w;
+        const sheetL = sheetSize.h;
         const bulkMode = el('bulkMode').value;
         const facadeSplitCount = parseInt(el('facadeSplit').value || '2', 10);
 
@@ -799,7 +793,9 @@
             ` : ''}
             <div class="cost-row">
               <div><strong>Итого</strong></div>
-              <div class="value-badge" style="font-size:16px">${roundTo(plywoodCost + railCost + foamCost, 2)} €</div>
+              <div class="value-badge tip" data-tip="Фанера + рейки + пенопласт.">
+                ${roundTo(plywoodCost + railCost + foamCost, 2)} €
+              </div>
             </div>
           </div>
         `;
@@ -1352,8 +1348,6 @@
           thickness: thickness,
           foam: foam,
           plywood: plyM,
-          sheetW: sheetW,
-          sheetL: sheetL,
           railSubtractMm: railSubtractMm,
           sheetProductPrice: sheetProductPrice,
           bulkMode: bulkMode,
@@ -1371,8 +1365,6 @@
         el('thickness').value = roundTo(fromMeters(state.thickness || 0.04), 3);
         el('foam').checked = !!state.foam;
         el('plywood').value = String(state.plywood || 0.004);
-        el('sheetW').value = roundTo(fromMeters(state.sheetW || 1.25), 3);
-        el('sheetL').value = roundTo(fromMeters(state.sheetL || 2.5), 3);
         el('railSubtractMm').value = state.railSubtractMm || 0;
         el('sheetProduct').value = String(state.sheetProductPrice || 3.91);
         el('bulkMode').value = state.bulkMode || 'retail';
@@ -1462,7 +1454,7 @@
         calc();
       });
 
-      ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL', 'railSubtractMm', 'sheetProduct', 'bulkMode', 'facadeSplit', 'foamType'].forEach((id) => {
+      ['length', 'height', 'thickness', 'foam', 'plywood', 'railSubtractMm', 'sheetProduct', 'bulkMode', 'facadeSplit', 'foamType'].forEach((id) => {
         el(id).addEventListener('input', calc);
         el(id).addEventListener('change', calc);
       });
@@ -1529,8 +1521,6 @@
       addWheelStep('length', 0.01);
       addWheelStep('height', 0.01);
       addWheelStep('thickness', 0.01);
-      addWheelStep('sheetW', 0.01);
-      addWheelStep('sheetL', 0.01);
       addWheelStepFixed('railSubtractMm', 1);
 
       init();

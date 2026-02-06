@@ -41,15 +41,42 @@ app.get("/api/health", (req, res) => {
 app.get("/api/captions", async (req, res) => {
   const { url, videoId, lang } = req.query;
   const id = extractVideoId(videoId || url);
-  const language = (lang || "en").toString();
+  const languageRaw = (lang || "en").toString();
+  const languageList = languageRaw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const language = languageList[0] || "en";
 
   if (!id) {
     return res.status(400).json({ error: "Invalid YouTube URL or videoId." });
   }
 
   try {
-    const captions = await getSubtitles({ videoID: id, lang: language });
-    res.json({ videoId: id, lang: language, captions });
+    let captions = null;
+    let usedLang = language;
+
+    for (const langCandidate of languageList.length ? languageList : [language]) {
+      try {
+        const result = await getSubtitles({ videoID: id, lang: langCandidate });
+        if (Array.isArray(result) && result.length) {
+          captions = result;
+          usedLang = langCandidate;
+          break;
+        }
+      } catch (innerErr) {
+        // Try next language candidate.
+      }
+    }
+
+    if (!captions) {
+      return res.status(404).json({
+        error: "No captions found for the requested languages.",
+        attemptedLangs: languageList.length ? languageList : [language]
+      });
+    }
+
+    res.json({ videoId: id, lang: usedLang, captions });
   } catch (err) {
     res.status(500).json({
       error: "Failed to fetch captions. The video may not have subtitles for this language.",

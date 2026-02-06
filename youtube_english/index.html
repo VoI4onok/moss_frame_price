@@ -192,6 +192,7 @@
         <input id="videoUrl" type="url" placeholder="Paste YouTube link" />
         <input id="cardCount" type="number" min="5" max="60" value="20" />
         <select id="captionLang">
+          <option value="en,en-US,en-GB">Auto (try English variants)</option>
           <option value="en" selected>English captions</option>
           <option value="en-US">English (US)</option>
           <option value="en-GB">English (UK)</option>
@@ -310,7 +311,8 @@
       const res = await fetch(`/api/captions?${params.toString()}`);
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "Failed to fetch captions.");
+        const attempted = Array.isArray(error.attemptedLangs) ? ` Attempted: ${error.attemptedLangs.join(", ")}.` : "";
+        throw new Error((error.error || "Failed to fetch captions.") + attempted);
       }
       return res.json();
     }
