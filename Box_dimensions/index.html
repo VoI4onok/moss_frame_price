@@ -729,7 +729,7 @@
         const costHtml = `
           <p class="note">Площадь фанеры: ${roundTo(totalPlywoodArea, 3)} м². С отходами (10%): ${roundTo(plywoodAreaWithWaste, 3)} м².</p>
           <p class="note">Стоимость фанеры: ${roundTo(plywoodCost, 2)} € (${roundTo(plywoodPricePerM2, 2)} €/м²).</p>
-          <p class="note">Рейки: ${roundTo(railTotalLength, 2)} м. С отходами (10%): ${roundTo(railLengthWithWaste, 2)} м. Стоимость: ${roundTo(railCost, 2)} €.</p>
+          <p class="note">Рейки: ${roundTo(railTotalLength, 2)} м. С отходами (10%): ${roundTo(railLengthWithWaste, 2)} м. Стоимость: ${roundTo(railCost, 2)} € (1.85 €/м).</p>
           ${foam ? `<p class="note">Пенопласт (по всем сторонам): ${roundTo(foamArea, 3)} м². С отходами (10%): ${roundTo(foamAreaWithWaste, 3)} м². Стоимость: ${roundTo(foamCost, 2)} €.</p>` : ''}
           <p class="total">Итого материалы: ${roundTo(plywoodCost + railCost + foamCost, 2)} €.</p>
         `;
