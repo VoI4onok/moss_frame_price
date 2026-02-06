@@ -207,6 +207,14 @@
         gap: 12px;
         align-items: start;
       }
+      .full-bleed {
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+      }
+      .sheet-svg {
+        width: 100%;
+        height: auto;
+      }
       .sheet-column {
         display: grid;
         gap: 8px;
@@ -476,7 +484,7 @@
             </tbody>
           </table>
         </section>
-        <section class="card">
+        <section class="card full-bleed">
           <h2>Расстановка деталей на листе</h2>
           <div id="sheetCutPreview" style="margin-top: 6px;"></div>
         </section>
