@@ -1257,7 +1257,16 @@
               x: 0,
               y: 0,
               rot: false,
-              sheetIndex: 0,
+              sheetIndex: (() => {
+                const usedBySheet = Array.from(piecesById.values()).reduce((acc, p) => {
+                  acc[p.sheetIndex] = (acc[p.sheetIndex] || 0) + 1;
+                  return acc;
+                }, {});
+                for (let i = 0; i < sheetsCount; i += 1) {
+                  if (!usedBySheet[i]) return i;
+                }
+                return 0;
+              })(),
             };
             piecesById.set(newPiece.id, newPiece);
             saveManual();
