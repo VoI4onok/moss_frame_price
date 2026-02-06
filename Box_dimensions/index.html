@@ -1280,7 +1280,14 @@
       function addWheelStep(inputId, stepInMeters) {
         const input = el(inputId);
         if (!input) return;
+        input.addEventListener('mousedown', () => {
+          input.dataset.wheelReady = '1';
+        });
+        input.addEventListener('blur', () => {
+          delete input.dataset.wheelReady;
+        });
         input.addEventListener('wheel', (e) => {
+          if (!input.dataset.wheelReady || document.activeElement !== input) return;
           e.preventDefault();
           const direction = e.deltaY < 0 ? 1 : -1;
           const current = parseFloat(input.value || 0);
@@ -1294,7 +1301,14 @@
       function addWheelStepFixed(inputId, stepValue) {
         const input = el(inputId);
         if (!input) return;
+        input.addEventListener('mousedown', () => {
+          input.dataset.wheelReady = '1';
+        });
+        input.addEventListener('blur', () => {
+          delete input.dataset.wheelReady;
+        });
         input.addEventListener('wheel', (e) => {
+          if (!input.dataset.wheelReady || document.activeElement !== input) return;
           e.preventDefault();
           const direction = e.deltaY < 0 ? 1 : -1;
           const current = parseFloat(input.value || 0);
