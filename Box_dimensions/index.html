@@ -384,6 +384,13 @@
                 <option value="3">Делить на 3 части</option>
               </select>
             </div>
+            <div>
+              <label for="foamType">Пенопласт (€/м²)</label>
+              <select id="foamType">
+                <option value="1.12">Белый — 1.12 €/м²</option>
+                <option value="1.92">Синий — 1.92 €/м²</option>
+              </select>
+            </div>
           </div>
         </section>
       </div>
@@ -640,6 +647,7 @@
         const railW = 0.03; // 30 мм
         const railSubtractMm = parseFloat(el('railSubtractMm').value || 0);
         const railSubtractM = railSubtractMm / 1000;
+        const foamPricePerM2 = parseFloat(el('foamType').value || 0);
 
         const L = length + foamAdd;
         const H = height + foamAdd;
@@ -680,6 +688,9 @@
           ? (sheetProductPrice === 3.91 ? 3.78 : 4.26)
           : sheetProductPrice;
         const plywoodCost = plywoodAreaWithWaste * plywoodPricePerM2;
+        const foamArea = 2 * (L * H + L * T + H * T);
+        const foamAreaWithWaste = foamArea * 1.1;
+        const foamCost = foam ? foamAreaWithWaste * foamPricePerM2 : 0;
 
         const plywoodHtml = `
           <table>
@@ -699,7 +710,8 @@
           <p class="note">Площадь фанеры: ${roundTo(totalPlywoodArea, 3)} м². С отходами (10%): ${roundTo(plywoodAreaWithWaste, 3)} м².</p>
           <p class="note">Стоимость фанеры: ${roundTo(plywoodCost, 2)} € (${roundTo(plywoodPricePerM2, 2)} €/м²).</p>
           <p class="note">Рейки: ${roundTo(railTotalLength, 2)} м. С отходами (10%): ${roundTo(railLengthWithWaste, 2)} м. Стоимость: ${roundTo(railCost, 2)} €.</p>
-          <p class="total">Итого материалы: ${roundTo(plywoodCost + railCost, 2)} €.</p>
+          ${foam ? `<p class="note">Пенопласт (по всем сторонам): ${roundTo(foamArea, 3)} м². С отходами (10%): ${roundTo(foamAreaWithWaste, 3)} м². Стоимость: ${roundTo(foamCost, 2)} €.</p>` : ''}
+          <p class="total">Итого материалы: ${roundTo(plywoodCost + railCost + foamCost, 2)} €.</p>
         `;
 
         const railItems = [
@@ -1213,6 +1225,7 @@
           sheetProductPrice: sheetProductPrice,
           bulkMode: bulkMode,
           facadeSplitCount: facadeSplitCount,
+          foamType: foamPricePerM2,
         });
       }
 
@@ -1231,6 +1244,7 @@
         el('sheetProduct').value = String(state.sheetProductPrice || 3.91);
         el('bulkMode').value = state.bulkMode || 'retail';
         el('facadeSplit').value = String(state.facadeSplitCount || 2);
+        el('foamType').value = String(state.foamType || 1.12);
       }
 
       function init() {
@@ -1301,7 +1315,7 @@
         calc();
       });
 
-      ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL', 'railSubtractMm', 'sheetProduct', 'bulkMode', 'facadeSplit'].forEach((id) => {
+      ['length', 'height', 'thickness', 'foam', 'plywood', 'sheetW', 'sheetL', 'railSubtractMm', 'sheetProduct', 'bulkMode', 'facadeSplit', 'foamType'].forEach((id) => {
         el(id).addEventListener('input', calc);
         el(id).addEventListener('change', calc);
       });

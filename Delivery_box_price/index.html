@@ -252,6 +252,15 @@
             </div>
         </div>
 
+        <div class="input-group">
+            <label for="foam">Пенопласт</label>
+            <label style="display:flex; align-items:center; gap:10px; font-weight:500;">
+                <input type="checkbox" id="foam">
+                Установить пенопласт
+            </label>
+            <div class="unit">добавляется к стоимости</div>
+        </div>
+
         <div class="button-group">
             <button class="calculate-btn" onclick="calculatePrice()">Рассчитать</button>
             <button class="reset-btn" onclick="resetCalculator()">Очистить</button>
@@ -297,6 +306,7 @@
         const resultDiv = document.getElementById('result');
         const resultPrice = document.getElementById('resultPrice');
         const errorDiv = document.getElementById('error');
+        const foamInput = document.getElementById('foam');
 
         // Обновляем объем при изменении размеров
         lengthInput.addEventListener('input', updateVolume);
@@ -375,14 +385,22 @@
 
             const volume = length * width * height;
             let price;
+            let foamExtra = 0;
 
             // Расчет цены по формулам
             if (volume < 0.03) {
                 price = (150 * volume) + 22;
+                foamExtra = 4;
             } else if (volume <= 0.13) {
                 price = (200 * volume) + 23;
+                foamExtra = 5.5;
             } else {
                 price = (250 * volume) + 24;
+                foamExtra = 7;
+            }
+
+            if (foamInput.checked) {
+                price += foamExtra;
             }
 
             // Отображение результата
@@ -394,6 +412,7 @@
             lengthInput.value = '0';
             widthInput.value = '0';
             heightInput.value = '0';
+            foamInput.checked = false;
             calculatedVolumeDiv.textContent = '0';
             resultDiv.classList.remove('show');
             errorDiv.classList.remove('show');
