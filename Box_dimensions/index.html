@@ -207,13 +207,12 @@
         gap: 12px;
         align-items: start;
       }
-      .full-bleed {
-        width: 100vw;
-        margin-left: calc(50% - 50vw);
-      }
       .sheet-svg {
         width: 100%;
         height: auto;
+      }
+      .full-width-section {
+        margin-top: 20px;
       }
       .sheet-column {
         display: grid;
@@ -484,10 +483,6 @@
             </tbody>
           </table>
         </section>
-        <section class="card full-bleed">
-          <h2>Расстановка деталей на листе</h2>
-          <div id="sheetCutPreview" style="margin-top: 6px;"></div>
-        </section>
         <section class="card">
           <h2>Пояснения (можно раскрыть)</h2>
           <details class="help">
@@ -521,6 +516,13 @@
             <p class="note">Фасад = (L + 2*фанера + 2*рейка) × (H + 2*фанера + 2*рейка). Бок = H × T. Крышка = (L + 2*фанера + 2*рейка) × (T).</p>
             <p class="note">Блок «Формулы с подстановкой» показывает промежуточные значения L', H', T' и итоговые размеры деталей.</p>
           </details>
+        </section>
+      </div>
+
+      <div class="full-width-section">
+        <section class="card">
+          <h2>Расстановка деталей на листе</h2>
+          <div id="sheetCutPreview" style="margin-top: 6px;"></div>
         </section>
       </div>
     </main>
