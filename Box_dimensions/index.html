@@ -760,7 +760,7 @@
               </tbody>
             </table>
           </div>
-          <p class="note">Лист фанеры: <span class="value-badge">${formatValue(sheetW)} × ${formatValue(sheetL)} ${unitLabel()}</span>. Раскладку на лист пока считаем вручную.</p>
+          <p class="note">Лист фанеры: <span class="value-badge">${formatValue(sheetW)} × ${formatValue(sheetL)} ${unitLabel()}</span>.</p>
         `;
 
         const costHtml = `
@@ -983,7 +983,7 @@
 
         el('sheetCutPreview').innerHTML = layoutHtml;
 
-        const snap = 0.003; // 3 mm
+        const snap = 0.03; // 30 mm
         const sheetsEls = Array.from(document.querySelectorAll('.sheet-svg'));
         let dragId = null;
         let dragSheetIndex = null;
