@@ -3,8 +3,416 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>youtube_english</title>
+  <title>YouTube English Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --ink: #1c1c1c;
+      --accent: #c44536;
+      --accent-2: #2f5d50;
+      --paper: #fffaf3;
+      --shadow: rgba(28, 28, 28, 0.2);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Fraunces", serif;
+      background: radial-gradient(circle at top left, #f9f6f0, #efe7d8 45%, #e6dbc5 100%);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 32px 20px 48px;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+    }
+
+    header {
+      display: grid;
+      gap: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: 0.5px;
+    }
+
+    .sub {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 14px;
+      opacity: 0.75;
+    }
+
+    .panel {
+      background: var(--paper);
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 16px 36px var(--shadow);
+      display: grid;
+      gap: 16px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1.5fr 0.6fr 0.6fr auto;
+    }
+
+    .controls input,
+    .controls select {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #d5c9b8;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .controls button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 18px rgba(196, 69, 54, 0.3);
+    }
+
+    .controls button:hover { transform: translateY(-2px); }
+
+    .status {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      color: #5d5243;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border: 2px solid #e2d7c5;
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 170px;
+      display: grid;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      animation: rise 0.35s ease;
+    }
+
+    .card .word {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .card .translation {
+      font-size: 18px;
+      color: var(--accent-2);
+    }
+
+    .card .meta {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      opacity: 0.6;
+    }
+
+    .card .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card button,
+    .card a {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #d5c9b8;
+      background: #fff;
+      color: var(--ink);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .card button.known {
+      background: var(--accent-2);
+      color: #fff;
+      border-color: var(--accent-2);
+    }
+
+    .card button.study {
+      background: #fff2e9;
+      color: var(--accent);
+      border-color: #f2c7a8;
+    }
+
+    .note {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    @keyframes rise {
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 820px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <header>
+      <h1>YouTube English Cards</h1>
+      <div class="sub">Smart word picking + video moments + translation</div>
+    </header>
+
+    <section class="panel">
+      <div class="controls">
+        <input id="videoUrl" type="url" placeholder="Paste YouTube link" />
+        <input id="cardCount" type="number" min="5" max="60" value="20" />
+        <select id="captionLang">
+          <option value="en" selected>English captions</option>
+          <option value="en-US">English (US)</option>
+          <option value="en-GB">English (UK)</option>
+        </select>
+        <button id="generateBtn">Generate cards</button>
+      </div>
+      <div class="status" id="status">Waiting for a YouTube link.</div>
+      <div class="note">Tip: the video must have English captions. If there are no captions, the list will fail.</div>
+    </section>
+
+    <section class="panel">
+      <div class="cards" id="cards"></div>
+    </section>
+  </div>
+
+  <script>
+    const stopwords = new Set([
+      "the", "a", "an", "and", "or", "but", "so", "because", "to", "of", "in", "on", "at", "by",
+      "for", "with", "about", "from", "as", "is", "are", "was", "were", "be", "been", "it", "this",
+      "that", "these", "those", "i", "you", "we", "they", "he", "she", "him", "her", "them", "my",
+      "your", "our", "their", "me", "us", "do", "does", "did", "not", "no", "yes", "if", "then",
+      "there", "here", "what", "which", "who", "whom", "when", "where", "why", "how", "can", "could",
+      "should", "would", "may", "might", "will", "just", "now", "like", "one", "two", "three", "up",
+      "down", "out", "over", "into", "also", "than", "more", "most", "some", "any", "all", "each",
+      "much", "many", "very", "really", "get", "got", "going", "go", "went", "make", "made"
+    ]);
+
+    const statusEl = document.getElementById("status");
+    const cardsEl = document.getElementById("cards");
+    const generateBtn = document.getElementById("generateBtn");
+
+    const knownKey = "yt_word_knowledge";
+
+    function loadKnowledge() {
+      try {
+        return JSON.parse(localStorage.getItem(knownKey)) || {};
+      } catch (err) {
+        return {};
+      }
+    }
+
+    function saveKnowledge(data) {
+      localStorage.setItem(knownKey, JSON.stringify(data));
+    }
+
+    function updateKnowledge(word, deltaEase, knownBoost = 0) {
+      const knowledge = loadKnowledge();
+      const entry = knowledge[word] || { ease: 0.4, seenCount: 0, lastSeen: 0 };
+      entry.ease = Math.max(0, Math.min(1, entry.ease + deltaEase));
+      entry.seenCount += knownBoost;
+      entry.lastSeen = Date.now();
+      knowledge[word] = entry;
+      saveKnowledge(knowledge);
+    }
+
+    function tokenize(text) {
+      const matches = text.toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g);
+      return matches || [];
+    }
+
+    function buildWordStats(captions) {
+      const stats = {};
+      captions.forEach((cap) => {
+        const tokens = tokenize(cap.text);
+        tokens.forEach((word) => {
+          if (word.length < 3 || stopwords.has(word)) return;
+          if (!stats[word]) {
+            stats[word] = { count: 0, times: [] };
+          }
+          stats[word].count += 1;
+          stats[word].times.push(cap.start);
+        });
+      });
+      return stats;
+    }
+
+    function scoreWords(stats, knowledge) {
+      const now = Date.now();
+      return Object.entries(stats).map(([word, data]) => {
+        const known = knowledge[word];
+        const base = Math.log2(data.count + 1);
+        let score = base;
+        if (!known) {
+          score += 10;
+        } else {
+          const familiarity = Math.min(1, known.seenCount / 6);
+          const days = Math.min(90, (now - known.lastSeen) / (1000 * 60 * 60 * 24));
+          score += (1 - familiarity) * 4 + (days / 30);
+        }
+        return { word, score, count: data.count, time: data.times[0] };
+      });
+    }
+
+    function pickTop(words, count) {
+      return words.sort((a, b) => b.score - a.score).slice(0, count);
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, "0")}`;
+    }
+
+    function buildListenUrl(videoUrl, start) {
+      try {
+        const url = new URL(videoUrl);
+        url.searchParams.set("t", Math.floor(start));
+        return url.toString();
+      } catch (err) {
+        return videoUrl;
+      }
+    }
+
+    async function fetchCaptions(videoUrl, lang) {
+      const params = new URLSearchParams({ url: videoUrl, lang });
+      const res = await fetch(`/api/captions?${params.toString()}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to fetch captions.");
+      }
+      return res.json();
+    }
+
+    async function translateWords(words) {
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ words, targetLang: "RU" })
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Translation failed.");
+      }
+      return res.json();
+    }
+
+    function renderCards(items, translations, videoUrl) {
+      cardsEl.innerHTML = "";
+      items.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const wordEl = document.createElement("div");
+        wordEl.className = "word";
+        wordEl.textContent = item.word;
+
+        const translationEl = document.createElement("div");
+        translationEl.className = "translation";
+        translationEl.textContent = translations[item.word] || "…";
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `Appears ${item.count}x • ${formatTime(item.time)}`;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const listen = document.createElement("a");
+        listen.href = buildListenUrl(videoUrl, item.time);
+        listen.target = "_blank";
+        listen.rel = "noreferrer";
+        listen.textContent = "Listen";
+
+        const knownBtn = document.createElement("button");
+        knownBtn.textContent = "Known";
+        knownBtn.className = "known";
+        knownBtn.addEventListener("click", () => {
+          updateKnowledge(item.word, 0.2, 1);
+          card.style.opacity = "0.4";
+        });
+
+        const studyBtn = document.createElement("button");
+        studyBtn.textContent = "Study";
+        studyBtn.className = "study";
+        studyBtn.addEventListener("click", () => {
+          updateKnowledge(item.word, -0.1, 0);
+          card.style.opacity = "1";
+        });
+
+        actions.append(listen, knownBtn, studyBtn);
+        card.append(wordEl, translationEl, meta, actions);
+        cardsEl.appendChild(card);
+      });
+    }
+
+    generateBtn.addEventListener("click", async () => {
+      const videoUrl = document.getElementById("videoUrl").value.trim();
+      const cardCount = Number(document.getElementById("cardCount").value || 20);
+      const lang = document.getElementById("captionLang").value;
+
+      if (!videoUrl) {
+        statusEl.textContent = "Please paste a YouTube link.";
+        return;
+      }
+
+      statusEl.textContent = "Fetching captions...";
+      cardsEl.innerHTML = "";
+
+      try {
+        const { captions } = await fetchCaptions(videoUrl, lang);
+        statusEl.textContent = `Captions loaded: ${captions.length} lines. Scoring words...`;
+
+        const knowledge = loadKnowledge();
+        const stats = buildWordStats(captions);
+        const scored = scoreWords(stats, knowledge);
+        const selected = pickTop(scored, cardCount);
+
+        if (selected.length === 0) {
+          statusEl.textContent = "No suitable words found. Try another video or language.";
+          return;
+        }
+
+        statusEl.textContent = "Translating...";
+        const { translations } = await translateWords(selected.map(item => item.word));
+
+        statusEl.textContent = `Done. ${selected.length} cards ready.`;
+        renderCards(selected, translations, videoUrl);
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    });
+  </script>
 </body>
 </html>

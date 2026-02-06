@@ -240,6 +240,7 @@
       .sheet-svg {
         width: 100%;
         height: auto;
+        touch-action: none;
       }
       .full-width-section {
         margin-top: 20px;
@@ -1183,6 +1184,7 @@
         function startDrag(p, sheetIndex, svg, e) {
           dragId = p.id;
           dragSheetIndex = sheetIndex;
+          document.body.style.userSelect = 'none';
           const rect = svg.getBoundingClientRect();
           const scale = parseFloat(svg.dataset.scale);
           const pad = parseFloat(svg.dataset.pad);
@@ -1234,12 +1236,14 @@
           dragStart = null;
           lastValid = null;
           saveManual();
+          document.body.style.userSelect = '';
           window.removeEventListener('pointermove', onPointerMove);
           window.removeEventListener('pointerup', onPointerUp);
         }
 
         sheetsEls.forEach((svg, idx) => {
           svg.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             const target = e.target;
             const group = target.closest('.piece');
             if (!group) return;
