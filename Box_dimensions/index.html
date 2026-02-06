@@ -1314,10 +1314,17 @@
         window.addEventListener('keydown', (e) => {
           const key = e.key.toLowerCase();
           const isRotateKey = key === 'r' || key === 'к' || e.code === 'KeyR';
-          if (!isRotateKey) return;
+          const isDeleteKey = key === 'd' || key === 'в' || e.code === 'KeyD';
+          if (!isRotateKey && !isDeleteKey) return;
           const id = dragId || selectedId;
           const p = id ? piecesById.get(id) : null;
           if (!p) return;
+          if (isDeleteKey) {
+            piecesById.delete(p.id);
+            saveManual();
+            calc();
+            return;
+          }
           p.rot = !p.rot;
           clampToSheet(p);
           updatePieceDom(p);
