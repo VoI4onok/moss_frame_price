@@ -326,8 +326,37 @@
             document.getElementById(id).addEventListener('change', saveToLocalStorage);
         });
 
+        function armWheelForElement(el) {
+            el.dataset.wheelArmed = 'true';
+        }
+
+        function disarmWheelForElement(el) {
+            el.dataset.wheelArmed = 'false';
+        }
+
+        function isWheelArmed(el) {
+            return el.dataset.wheelArmed === 'true';
+        }
+
+        // Запрещаем случайную прокрутку колёсиком до клика мышью
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('mousedown', (e) => {
+                if (e.button === 0) armWheelForElement(el);
+            });
+            el.addEventListener('blur', () => disarmWheelForElement(el));
+            el.addEventListener('wheel', (e) => {
+                if (!isWheelArmed(el)) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        });
+
         // Обработка прокрутки колёсика мыши для изменения значений
         document.getElementById('width').addEventListener('wheel', (e) => {
+            if (!isWheelArmed(e.currentTarget)) {
+                e.preventDefault();
+                return;
+            }
             e.preventDefault();
             const input = document.getElementById('width');
             const step = 0.01;
@@ -339,6 +368,10 @@
         });
 
         document.getElementById('height').addEventListener('wheel', (e) => {
+            if (!isWheelArmed(e.currentTarget)) {
+                e.preventDefault();
+                return;
+            }
             e.preventDefault();
             const input = document.getElementById('height');
             const step = 0.01;

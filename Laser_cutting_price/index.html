@@ -674,7 +674,15 @@
 
         // Реагирование на колёсико мышки для поля количества изделий
         const quantityInput = document.getElementById('quantity');
+        quantityInput.dataset.wheelArmed = '0';
+        quantityInput.addEventListener('mousedown', function() {
+            this.dataset.wheelArmed = '1';
+        });
+        quantityInput.addEventListener('blur', function() {
+            this.dataset.wheelArmed = '0';
+        });
         quantityInput.addEventListener('wheel', function(event) {
+            if (this.dataset.wheelArmed !== '1') return;
             event.preventDefault();
 
             const currentValue = parseInt(this.value, 10) || 0;
@@ -711,12 +719,20 @@
         // Реагирование на колёсико мышки для поля времени гравировки
         const engraveInput = document.getElementById('engraveTime');
         engraveInput.dataset.minutes = '0';
+        engraveInput.dataset.wheelArmed = '0';
+        engraveInput.addEventListener('mousedown', function() {
+            this.dataset.wheelArmed = '1';
+        });
+        engraveInput.addEventListener('blur', function() {
+            this.dataset.wheelArmed = '0';
+        });
         engraveInput.addEventListener('change', function() {
             const minutes = parseClockToMinutes(this.value);
             this.dataset.minutes = String(minutes);
             this.value = formatMinutesToClock(minutes);
         });
         engraveInput.addEventListener('wheel', function(event) {
+            if (this.dataset.wheelArmed !== '1') return;
             event.preventDefault();
 
             const currentMinutes = parseInt(this.dataset.minutes || '0', 10) || 0;
@@ -728,7 +744,15 @@
         });
 
         // Реагирование на колёсико мышки для поля длины реза
+        lengthInput.dataset.wheelArmed = '0';
+        lengthInput.addEventListener('mousedown', function() {
+            this.dataset.wheelArmed = '1';
+        });
+        lengthInput.addEventListener('blur', function() {
+            this.dataset.wheelArmed = '0';
+        });
         lengthInput.addEventListener('wheel', function(event) {
+            if (this.dataset.wheelArmed !== '1') return;
             event.preventDefault();
 
             const currentValue = parseFloat(String(this.value).replace(',', '.')) || 0;
@@ -739,6 +763,14 @@
         });
 
         function bindWheelStep(input, step, decimals) {
+            input.dataset.wheelArmed = '0';
+            input.addEventListener('mousedown', function() {
+                this.dataset.wheelArmed = '1';
+            });
+            input.addEventListener('blur', function() {
+                this.dataset.wheelArmed = '0';
+            });
+
             input.addEventListener('change', function() {
                 if (this.value === '') return;
                 const parsed = parseFloat(String(this.value).replace(',', '.'));
@@ -751,6 +783,7 @@
             });
 
             input.addEventListener('wheel', function(event) {
+                if (this.dataset.wheelArmed !== '1') return;
                 event.preventDefault();
 
                 const currentValue = parseFloat(String(this.value).replace(',', '.')) || 0;

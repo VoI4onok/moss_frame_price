@@ -315,6 +315,7 @@
 
         // Обработка прокрутки колёсика мыши для изменения значений
         lengthInput.addEventListener('wheel', (e) => {
+            if (document.activeElement !== lengthInput) return;
             e.preventDefault();
             const step = 0.01;
             const currentValue = parseNumber(lengthInput.value);
@@ -325,6 +326,7 @@
         });
 
         widthInput.addEventListener('wheel', (e) => {
+            if (document.activeElement !== widthInput) return;
             e.preventDefault();
             const step = 0.01;
             const currentValue = parseNumber(widthInput.value);
@@ -335,6 +337,7 @@
         });
 
         heightInput.addEventListener('wheel', (e) => {
+            if (document.activeElement !== heightInput) return;
             e.preventDefault();
             const step = 0.01;
             const currentValue = parseNumber(heightInput.value);
