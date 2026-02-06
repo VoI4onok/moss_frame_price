@@ -203,28 +203,28 @@
       }
       .layout {
         display: grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
+        grid-template-columns: 0.7fr 1.3fr;
+        gap: 12px;
         align-items: start;
       }
       .sheet-column {
         display: grid;
-        gap: 12px;
+        gap: 8px;
       }
       .palette-column {
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 12px;
+        border-radius: 12px;
+        padding: 10px;
       }
       .palette-item {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 8px 10px;
+        padding: 6px 8px;
         border: 1px solid var(--line);
-        border-radius: 10px;
-        margin-bottom: 8px;
+        border-radius: 8px;
+        margin-bottom: 6px;
         background: rgba(255, 255, 255, 0.04);
       }
       .palette-item button {
@@ -245,11 +245,16 @@
         background: #ffffff;
         color: #0b0b0b;
         border: none;
-        border-radius: 10px;
-        padding: 10px 12px;
+        border-radius: 8px;
+        padding: 8px 10px;
         font-weight: 700;
         cursor: pointer;
         width: 100%;
+      }
+      .sheet-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 8px;
       }
       .pill {
         display: inline-block;
@@ -919,7 +924,7 @@
 
         const sheetsHtml = Array.from({ length: sheetsCount }, (_, idx) => `
           <div>
-            <div class="pill" style="margin-top: 6px;">Лист ${idx + 1}</div>
+            <div class="pill" style="margin-top: 4px;">Лист ${idx + 1}</div>
             <svg class="sheet-svg" data-sheet="${idx}" data-scale="${sheetScale}" data-pad="${sheetPad}" data-w="${sheet.w}" data-h="${sheet.h}" viewBox="0 0 ${sheetPreviewW} ${sheetPreviewH}" width="100%" height="${sheetPreviewH}" aria-label="Раскрой фанеры">
               <rect class="sheet-rect" x="${sheetPad}" y="${sheetPad}" width="${sheet.w * sheetScale}" height="${sheet.h * sheetScale}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.4)"/>
             </svg>
@@ -933,7 +938,9 @@
               ${paletteHtml}
             </div>
             <div class="sheet-column">
-              ${sheetsHtml}
+              <div class="sheet-row">
+                ${sheetsHtml}
+              </div>
               <button class="add-sheet-btn" id="addSheetBtn">+ Добавить лист</button>
               ${facadeSplitUsed ? `<div class="note">Фасады разделены на ${facadeSplitCount} части по длине для раскроя.</div>` : ''}
             </div>
