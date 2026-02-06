@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "youtube-captions-scraper": "^1.0.1"
+    "youtube-captions-scraper": "^1.0.1",
+    "youtube-transcript": "^1.0.6"
   }
 }

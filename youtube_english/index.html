@@ -192,15 +192,24 @@
         <input id="videoUrl" type="url" placeholder="Paste YouTube link" />
         <input id="cardCount" type="number" min="5" max="60" value="20" />
         <select id="captionLang">
-          <option value="en,en-US,en-GB">Auto (try English variants)</option>
+          <option value="en,en-US,en-GB,a.en">Auto (English + auto-captions)</option>
           <option value="en" selected>English captions</option>
           <option value="en-US">English (US)</option>
           <option value="en-GB">English (UK)</option>
+          <option value="a.en">Auto English (a.en)</option>
         </select>
         <button id="generateBtn">Generate cards</button>
       </div>
+      <div class="controls">
+        <input id="subtitleFile" type="file" accept=".srt,.vtt" />
+        <button id="generateFromFileBtn">Generate from subtitle file</button>
+      </div>
+      <div class="controls">
+        <input id="transcriptUrl" type="url" placeholder="Paste transcript link (criticalrole.fandom.com)" />
+        <button id="generateFromTranscriptBtn">Generate from transcript link</button>
+      </div>
       <div class="status" id="status">Waiting for a YouTube link.</div>
-      <div class="note">Tip: the video must have English captions. If there are no captions, the list will fail.</div>
+      <div class="note">Tip: if YouTube captions are blocked, use a transcript link or subtitle file.</div>
     </section>
 
     <section class="panel">
@@ -223,6 +232,10 @@
     const statusEl = document.getElementById("status");
     const cardsEl = document.getElementById("cards");
     const generateBtn = document.getElementById("generateBtn");
+    const generateFromFileBtn = document.getElementById("generateFromFileBtn");
+    const subtitleFileInput = document.getElementById("subtitleFile");
+    const generateFromTranscriptBtn = document.getElementById("generateFromTranscriptBtn");
+    const transcriptUrlInput = document.getElementById("transcriptUrl");
 
     const knownKey = "yt_word_knowledge";
 
@@ -251,6 +264,57 @@
     function tokenize(text) {
       const matches = text.toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g);
       return matches || [];
+    }
+
+    function parseTimeToSeconds(timeStr) {
+      // Supports "HH:MM:SS,mmm" (SRT) and "HH:MM:SS.mmm" (VTT)
+      const clean = timeStr.trim().replace(",", ".");
+      const parts = clean.split(":");
+      if (parts.length !== 3) return 0;
+      const [h, m, s] = parts;
+      return Number(h) * 3600 + Number(m) * 60 + Number(s);
+    }
+
+    function parseSubtitleContent(text) {
+      const lines = text.split(/\r?\n/);
+      const captions = [];
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i].trim();
+        if (!line) {
+          i += 1;
+          continue;
+        }
+
+        // Skip index line if it's a number.
+        if (/^\d+$/.test(line)) {
+          i += 1;
+        }
+
+        const timeLine = (lines[i] || "").trim();
+        if (!timeLine.includes("-->")) {
+          i += 1;
+          continue;
+        }
+
+        const [startRaw] = timeLine.split("-->").map((part) => part.trim());
+        const start = parseTimeToSeconds(startRaw);
+        i += 1;
+
+        const textLines = [];
+        while (i < lines.length && lines[i].trim()) {
+          textLines.push(lines[i].trim());
+          i += 1;
+        }
+
+        const captionText = textLines.join(" ").replace(/\s+/g, " ").trim();
+        if (captionText) {
+          captions.push({ start, text: captionText });
+        }
+      }
+
+      return captions;
     }
 
     function buildWordStats(captions) {
@@ -297,6 +361,7 @@
     }
 
     function buildListenUrl(videoUrl, start) {
+      if (!videoUrl || start === null || start === undefined) return "";
       try {
         const url = new URL(videoUrl);
         url.searchParams.set("t", Math.floor(start));
@@ -309,10 +374,20 @@
     async function fetchCaptions(videoUrl, lang) {
       const params = new URLSearchParams({ url: videoUrl, lang });
       const res = await fetch(`/api/captions?${params.toString()}`);
+      const contentType = res.headers.get("content-type") || "";
       if (!res.ok) {
-        const error = await res.json();
-        const attempted = Array.isArray(error.attemptedLangs) ? ` Attempted: ${error.attemptedLangs.join(", ")}.` : "";
-        throw new Error((error.error || "Failed to fetch captions.") + attempted);
+        let errorMessage = "Failed to fetch captions.";
+        if (contentType.includes("application/json")) {
+          const error = await res.json();
+          const attempted = Array.isArray(error.attemptedLangs) ? ` Attempted: ${error.attemptedLangs.join(", ")}.` : "";
+          errorMessage = (error.error || errorMessage) + attempted;
+        } else {
+          errorMessage = `Server returned ${res.status}.`;
+        }
+        throw new Error(errorMessage);
+      }
+      if (!contentType.includes("application/json")) {
+        throw new Error("Server did not return JSON for captions.");
       }
       return res.json();
     }
@@ -346,16 +421,25 @@
 
         const meta = document.createElement("div");
         meta.className = "meta";
-        meta.textContent = `Appears ${item.count}x • ${formatTime(item.time)}`;
+        meta.textContent = item.time === null || item.time === undefined
+          ? `Appears ${item.count}x • No timestamp`
+          : `Appears ${item.count}x • ${formatTime(item.time)}`;
 
         const actions = document.createElement("div");
         actions.className = "actions";
 
         const listen = document.createElement("a");
-        listen.href = buildListenUrl(videoUrl, item.time);
-        listen.target = "_blank";
-        listen.rel = "noreferrer";
+        const listenUrl = buildListenUrl(videoUrl, item.time);
         listen.textContent = "Listen";
+        if (listenUrl) {
+          listen.href = listenUrl;
+          listen.target = "_blank";
+          listen.rel = "noreferrer";
+        } else {
+          listen.style.opacity = "0.5";
+          listen.style.pointerEvents = "none";
+          listen.title = "No timestamp available for this transcript.";
+        }
 
         const knownBtn = document.createElement("button");
         knownBtn.textContent = "Known";
@@ -411,6 +495,109 @@
 
         statusEl.textContent = `Done. ${selected.length} cards ready.`;
         renderCards(selected, translations, videoUrl);
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    });
+
+    generateFromFileBtn.addEventListener("click", async () => {
+      const file = subtitleFileInput.files[0];
+      const videoUrl = document.getElementById("videoUrl").value.trim();
+      const cardCount = Number(document.getElementById("cardCount").value || 20);
+
+      if (!file) {
+        statusEl.textContent = "Please choose a .srt or .vtt file.";
+        return;
+      }
+
+      statusEl.textContent = "Reading subtitle file...";
+      cardsEl.innerHTML = "";
+
+      try {
+        const content = await file.text();
+        const captions = parseSubtitleContent(content);
+        if (!captions.length) {
+          statusEl.textContent = "No captions found in the file.";
+          return;
+        }
+
+        statusEl.textContent = `Loaded ${captions.length} lines. Scoring words...`;
+        const knowledge = loadKnowledge();
+        const stats = buildWordStats(captions);
+        const scored = scoreWords(stats, knowledge);
+        const selected = pickTop(scored, cardCount);
+
+        if (selected.length === 0) {
+          statusEl.textContent = "No suitable words found in this file.";
+          return;
+        }
+
+        statusEl.textContent = "Translating...";
+        const { translations } = await translateWords(selected.map(item => item.word));
+
+        statusEl.textContent = `Done. ${selected.length} cards ready.`;
+        renderCards(selected, translations, videoUrl || "");
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    });
+
+    generateFromTranscriptBtn.addEventListener("click", async () => {
+      const transcriptUrl = transcriptUrlInput.value.trim();
+      const videoUrl = document.getElementById("videoUrl").value.trim();
+      const cardCount = Number(document.getElementById("cardCount").value || 20);
+
+      if (!transcriptUrl) {
+        statusEl.textContent = "Please paste a transcript link.";
+        return;
+      }
+
+      statusEl.textContent = "Fetching transcript...";
+      cardsEl.innerHTML = "";
+
+      try {
+        const res = await fetch(`/api/transcript?url=${encodeURIComponent(transcriptUrl)}`);
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok) {
+          let errorMessage = "Failed to fetch transcript.";
+          if (contentType.includes("application/json")) {
+            const error = await res.json();
+            const details = [error.status, error.statusText].filter(Boolean).join(" ");
+            const snippet = error.snippet ? ` ${error.snippet}` : "";
+            errorMessage = `${error.error || errorMessage}${details ? ` (${details})` : ""}${snippet}`;
+          } else {
+            errorMessage = `Server returned ${res.status}.`;
+          }
+          throw new Error(errorMessage);
+        }
+
+        if (!contentType.includes("application/json")) {
+          throw new Error("Server did not return JSON for transcript.");
+        }
+
+        const data = await res.json();
+        const captions = data.captions || [];
+        if (!captions.length) {
+          statusEl.textContent = "Transcript is empty.";
+          return;
+        }
+
+        statusEl.textContent = `Transcript loaded: ${captions.length} lines. Scoring words...`;
+        const knowledge = loadKnowledge();
+        const stats = buildWordStats(captions);
+        const scored = scoreWords(stats, knowledge);
+        const selected = pickTop(scored, cardCount);
+
+        if (selected.length === 0) {
+          statusEl.textContent = "No suitable words found in this transcript.";
+          return;
+        }
+
+        statusEl.textContent = "Translating...";
+        const { translations } = await translateWords(selected.map(item => item.word));
+
+        statusEl.textContent = `Done. ${selected.length} cards ready.`;
+        renderCards(selected, translations, videoUrl || "");
       } catch (err) {
         statusEl.textContent = err.message;
       }
