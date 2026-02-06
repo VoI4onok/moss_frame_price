@@ -145,6 +145,17 @@
         font-weight: 700;
         letter-spacing: 0.2px;
       }
+      .cost-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .cost-row:last-child {
+        border-bottom: none;
+      }
       .soft-card {
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid var(--line);
@@ -764,11 +775,32 @@
         `;
 
         const costHtml = `
-          <p class="note">Площадь фанеры: ${roundTo(totalPlywoodArea, 3)} м². С отходами (10%): ${roundTo(plywoodAreaWithWaste, 3)} м².</p>
-          <p class="note">Стоимость фанеры: ${roundTo(plywoodCost, 2)} € (${roundTo(plywoodPricePerM2, 2)} €/м²).</p>
-          <p class="note">Рейки: ${roundTo(railTotalLength, 2)} м. С отходами (10%): ${roundTo(railLengthWithWaste, 2)} м. Стоимость: ${roundTo(railCost, 2)} € (1.85 €/м).</p>
-          ${foam ? `<p class="note">Пенопласт (по всем сторонам): ${roundTo(foamArea, 3)} м². С отходами (10%): ${roundTo(foamAreaWithWaste, 3)} м². Стоимость: ${roundTo(foamCost, 2)} €.</p>` : ''}
-          <p class="total">Итого материалы: ${roundTo(plywoodCost + railCost + foamCost, 2)} €.</p>
+          <div class="soft-card">
+            <div class="cost-row">
+              <div>Фанера</div>
+              <div class="value-badge tip" data-tip="Площадь: ${roundTo(totalPlywoodArea, 3)} м². С отходами 10%: ${roundTo(plywoodAreaWithWaste, 3)} м². Цена: ${roundTo(plywoodPricePerM2, 2)} €/м².">
+                ${roundTo(plywoodCost, 2)} €
+              </div>
+            </div>
+            <div class="cost-row">
+              <div>Рейки</div>
+              <div class="value-badge tip" data-tip="Длина: ${roundTo(railTotalLength, 2)} м. С отходами 10%: ${roundTo(railLengthWithWaste, 2)} м. Цена: 1.85 €/м.">
+                ${roundTo(railCost, 2)} €
+              </div>
+            </div>
+            ${foam ? `
+              <div class="cost-row">
+                <div>Пенопласт</div>
+                <div class="value-badge tip" data-tip="Площадь: ${roundTo(foamArea, 3)} м². С отходами 10%: ${roundTo(foamAreaWithWaste, 3)} м². Цена: ${roundTo(foamPricePerM2, 2)} €/м².">
+                  ${roundTo(foamCost, 2)} €
+                </div>
+              </div>
+            ` : ''}
+            <div class="cost-row">
+              <div><strong>Итого</strong></div>
+              <div class="value-badge" style="font-size:16px">${roundTo(plywoodCost + railCost + foamCost, 2)} €</div>
+            </div>
+          </div>
         `;
 
         const railItems = [
