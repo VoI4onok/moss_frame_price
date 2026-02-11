@@ -1,6 +1,6 @@
 {
   "name": "youtube-english-cards",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "commonjs",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "youtube-captions-scraper": "^1.0.1",
-    "youtube-transcript": "^1.0.6"
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   }
 }

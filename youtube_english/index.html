@@ -3,24 +3,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>YouTube English Cards</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <title>Word Cards</title>
   <style>
     :root {
-      --bg: #f5f1e8;
-      --ink: #1c1c1c;
-      --accent: #c44536;
+      --bg: #f4f0e6;
+      --ink: #1b1b1b;
+      --accent: #c04b3c;
       --accent-2: #2f5d50;
       --paper: #fffaf3;
-      --shadow: rgba(28, 28, 28, 0.2);
+      --shadow: rgba(20, 20, 20, 0.18);
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: "Fraunces", serif;
-      background: radial-gradient(circle at top left, #f9f6f0, #efe7d8 45%, #e6dbc5 100%);
+      font-family: "Georgia", serif;
+      background: radial-gradient(circle at top left, #faf6ef, #efe4d0 55%, #e2d3bb 100%);
       color: var(--ink);
       min-height: 100vh;
       padding: 32px 20px 48px;
@@ -30,186 +29,343 @@
       max-width: 980px;
       margin: 0 auto;
       display: grid;
-      gap: 24px;
-    }
-
-    header {
-      display: grid;
-      gap: 8px;
+      gap: 20px;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(28px, 4vw, 44px);
-      letter-spacing: 0.5px;
-    }
-
-    .sub {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 14px;
-      opacity: 0.75;
+      font-size: clamp(28px, 4vw, 42px);
     }
 
     .panel {
       background: var(--paper);
       padding: 20px;
-      border-radius: 18px;
-      box-shadow: 0 16px 36px var(--shadow);
+      border-radius: 16px;
+      box-shadow: 0 14px 30px var(--shadow);
       display: grid;
-      gap: 16px;
+      gap: 14px;
+    }
+
+    .row {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+
+    .row-tight {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr auto;
+      align-items: center;
     }
 
     .controls {
       display: grid;
       gap: 12px;
-      grid-template-columns: 1.5fr 0.6fr 0.6fr auto;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
     }
 
-    .controls input,
-    .controls select {
+    .bulk {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr auto;
+    }
+
+    input, textarea, button {
       padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid #d5c9b8;
-      font-family: "IBM Plex Mono", monospace;
+      border-radius: 10px;
+      border: 1px solid #d6c9b7;
       font-size: 14px;
-      background: #fff;
+      font-family: inherit;
     }
 
-    .controls button {
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    button {
       background: var(--accent);
       color: #fff;
       border: none;
-      border-radius: 12px;
-      padding: 12px 18px;
-      font-family: "IBM Plex Mono", monospace;
-      font-weight: 600;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 10px 18px rgba(196, 69, 54, 0.3);
+      font-weight: 600;
     }
 
-    .controls button:hover { transform: translateY(-2px); }
-
-    .status {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 13px;
+    .muted {
+      font-family: "Courier New", monospace;
+      font-size: 12px;
       color: #5d5243;
     }
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
     }
 
     .card {
-      background: #fff;
-      border: 2px solid #e2d7c5;
-      border-radius: 18px;
-      padding: 16px;
-      min-height: 170px;
-      display: grid;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-      animation: rise 0.35s ease;
+      perspective: 1200px;
     }
 
-    .card .word {
-      font-size: 24px;
+    .card-inner {
+      position: relative;
+      min-height: 230px;
+      transform-style: preserve-3d;
+      transition: transform 0.45s ease;
+    }
+
+    .card.is-flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      border: 2px solid #e2d7c5;
+      border-radius: 16px;
+      padding: 20px;
+      display: grid;
+      gap: 10px;
+      backface-visibility: hidden;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      background: #fff8ef;
+    }
+
+    .word {
+      font-size: 28px;
       font-weight: 700;
     }
 
-    .card .translation {
-      font-size: 18px;
-      color: var(--accent-2);
+    .card-front {
+      place-items: center;
+      text-align: center;
+      gap: 12px;
     }
 
-    .card .meta {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 12px;
-      opacity: 0.6;
+    .card-front .word {
+      font-size: 34px;
     }
 
-    .card .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .card button,
-    .card a {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 12px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid #d5c9b8;
+    .speak {
+      border: 1px solid #d6c9b7;
       background: #fff;
-      color: var(--ink);
-      text-decoration: none;
+      color: #1b1b1b;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
       cursor: pointer;
     }
 
-    .card button.known {
-      background: var(--accent-2);
-      color: #fff;
-      border-color: var(--accent-2);
+    .translation {
+      font-size: 17px;
+      color: var(--accent-2);
     }
 
-    .card button.study {
-      background: #fff2e9;
-      color: var(--accent);
-      border-color: #f2c7a8;
+    .definition {
+      font-size: 14px;
+      color: #51473b;
     }
 
-    .note {
-      font-family: "IBM Plex Mono", monospace;
+    .example {
+      font-size: 13px;
+      font-style: italic;
+      color: #3f3a32;
+    }
+
+    .fact {
       font-size: 12px;
-      opacity: 0.7;
+      color: #6c5f50;
     }
 
-    @keyframes rise {
-      from { transform: translateY(8px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    .remove {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      border: 1px solid #d6c9b7;
+      background: #fff;
+      color: #8b3f34;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      cursor: pointer;
     }
 
-    @media (max-width: 820px) {
+    @media (max-width: 860px) {
       .controls {
         grid-template-columns: 1fr;
       }
+      .row {
+        grid-template-columns: 1fr;
+      }
+      .bulk {
+        grid-template-columns: 1fr;
+      }
+      .row-tight {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .study-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 18, 15, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 20;
+    }
+
+    .study-overlay.is-open {
+      display: flex;
+    }
+
+    .study-card {
+      width: min(640px, 92vw);
+      min-height: 360px;
+      perspective: 1200px;
+    }
+
+    .study-inner {
+      position: relative;
+      min-height: 360px;
+      transform-style: preserve-3d;
+      transition: transform 0.45s ease;
+    }
+
+    .study-card.is-flipped .study-inner {
+      transform: rotateY(180deg);
+    }
+
+    .study-face {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px;
+      display: grid;
+      gap: 14px;
+      backface-visibility: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .study-front {
+      place-items: center;
+      text-align: center;
+    }
+
+    .study-front .word {
+      font-size: 42px;
+    }
+
+    .study-front .speak {
+      margin-top: 6px;
+    }
+
+    .study-back {
+      background: #fff8ef;
+      transform: rotateY(180deg);
+    }
+
+    .study-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .study-actions button {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .study-actions .bad {
+      background: #fff2e9;
+      color: #c04b3c;
+      border: 1px solid #f2c7a8;
+    }
+
+    .study-actions .good {
+      background: #2f5d50;
+      color: #fff;
+      border: 1px solid #2f5d50;
+    }
+
+    .study-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-family: "Courier New", monospace;
+      margin-bottom: 12px;
+    }
+
+    .study-toolbar button {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <h1>YouTube English Cards</h1>
-      <div class="sub">Smart word picking + video moments + translation</div>
-    </header>
+    <h1>Word Cards</h1>
+
+    <section class="panel">
+      <div class="row-tight">
+        <input id="folderNameInput" type="text" placeholder="New folder name" />
+        <button id="createFolderBtn">Create folder</button>
+      </div>
+      <div class="row-tight">
+        <select id="folderSelect"></select>
+        <button id="refreshFoldersBtn">Refresh folders</button>
+      </div>
+      <div class="muted" id="folderStatus">No folders yet.</div>
+      <div id="setList" class="muted"></div>
+    </section>
+
+    <section class="panel">
+      <div class="row">
+        <div>
+          <div class="muted">Your secret set link</div>
+          <div id="setLink" class="muted">Not created yet</div>
+        </div>
+        <div class="row-tight">
+          <button id="newSetBtn">Create new set</button>
+          <button id="studyBtn">Study mode</button>
+        </div>
+      </div>
+      <div class="muted" id="status">Create a set to start adding cards.</div>
+    </section>
 
     <section class="panel">
       <div class="controls">
-        <input id="videoUrl" type="url" placeholder="Paste YouTube link" />
-        <input id="cardCount" type="number" min="5" max="60" value="20" />
-        <select id="captionLang">
-          <option value="en,en-US,en-GB,a.en">Auto (English + auto-captions)</option>
-          <option value="en" selected>English captions</option>
-          <option value="en-US">English (US)</option>
-          <option value="en-GB">English (UK)</option>
-          <option value="a.en">Auto English (a.en)</option>
-        </select>
-        <button id="generateBtn">Generate cards</button>
+        <input id="wordInput" type="text" placeholder="Word (English)" />
+        <input id="translationInput" type="text" placeholder="Translation (Russian)" />
+        <input id="definitionInput" type="text" placeholder="Definition (optional)" />
+        <button id="addCardBtn">Add card</button>
       </div>
-      <div class="controls">
-        <input id="subtitleFile" type="file" accept=".srt,.vtt" />
-        <button id="generateFromFileBtn">Generate from subtitle file</button>
+    </section>
+
+    <section class="panel">
+      <div class="bulk">
+        <textarea id="bulkInput" placeholder="Paste multiple cards in your format..."></textarea>
+        <button id="bulkAddBtn">Add many cards</button>
       </div>
-      <div class="controls">
-        <input id="transcriptUrl" type="url" placeholder="Paste transcript link (criticalrole.fandom.com)" />
-        <button id="generateFromTranscriptBtn">Generate from transcript link</button>
-      </div>
-      <div class="status" id="status">Waiting for a YouTube link.</div>
-      <div class="note">Tip: if YouTube captions are blocked, use a transcript link or subtitle file.</div>
+      <div class="muted">Format example: word ; translation ; definition ; “Example sentence.” ; optional fact</div>
     </section>
 
     <section class="panel">
@@ -217,389 +373,465 @@
     </section>
   </div>
 
+  <div class="study-overlay" id="studyOverlay">
+    <div>
+      <div class="study-toolbar">
+        <div id="studyStatus">Study mode</div>
+        <button id="closeStudyBtn">Close</button>
+      </div>
+      <div class="study-card" id="studyCard">
+        <div class="study-inner" id="studyInner">
+          <div class="study-face study-front">
+            <div class="word" id="studyWord">Word</div>
+            <button class="speak" id="studySpeakBtn">Play</button>
+            <div class="muted">Tap to flip</div>
+          </div>
+          <div class="study-face study-back">
+            <div class="translation" id="studyTranslation"></div>
+            <div class="definition" id="studyDefinition"></div>
+            <div class="example" id="studyExample"></div>
+            <div class="fact" id="studyFact"></div>
+            <div class="study-actions">
+              <button class="bad" id="studyBadBtn">Need to learn ⬅</button>
+              <button class="good" id="studyGoodBtn">Know well ➡</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const stopwords = new Set([
-      "the", "a", "an", "and", "or", "but", "so", "because", "to", "of", "in", "on", "at", "by",
-      "for", "with", "about", "from", "as", "is", "are", "was", "were", "be", "been", "it", "this",
-      "that", "these", "those", "i", "you", "we", "they", "he", "she", "him", "her", "them", "my",
-      "your", "our", "their", "me", "us", "do", "does", "did", "not", "no", "yes", "if", "then",
-      "there", "here", "what", "which", "who", "whom", "when", "where", "why", "how", "can", "could",
-      "should", "would", "may", "might", "will", "just", "now", "like", "one", "two", "three", "up",
-      "down", "out", "over", "into", "also", "than", "more", "most", "some", "any", "all", "each",
-      "much", "many", "very", "really", "get", "got", "going", "go", "went", "make", "made"
-    ]);
-
+    const setLinkEl = document.getElementById("setLink");
     const statusEl = document.getElementById("status");
+    const newSetBtn = document.getElementById("newSetBtn");
+    const addCardBtn = document.getElementById("addCardBtn");
+    const studyBtn = document.getElementById("studyBtn");
+    const folderNameInput = document.getElementById("folderNameInput");
+    const createFolderBtn = document.getElementById("createFolderBtn");
+    const folderSelect = document.getElementById("folderSelect");
+    const refreshFoldersBtn = document.getElementById("refreshFoldersBtn");
+    const folderStatus = document.getElementById("folderStatus");
+    const setList = document.getElementById("setList");
+    const bulkAddBtn = document.getElementById("bulkAddBtn");
+    const bulkInput = document.getElementById("bulkInput");
+
+    const studyOverlay = document.getElementById("studyOverlay");
+    const closeStudyBtn = document.getElementById("closeStudyBtn");
+    const studyCard = document.getElementById("studyCard");
+    const studyInner = document.getElementById("studyInner");
+    const studyWord = document.getElementById("studyWord");
+    const studyTranslation = document.getElementById("studyTranslation");
+    const studyDefinition = document.getElementById("studyDefinition");
+    const studyExample = document.getElementById("studyExample");
+    const studyFact = document.getElementById("studyFact");
+    const studyBadBtn = document.getElementById("studyBadBtn");
+    const studyGoodBtn = document.getElementById("studyGoodBtn");
+    const studyStatus = document.getElementById("studyStatus");
+    const studySpeakBtn = document.getElementById("studySpeakBtn");
+
+    const wordInput = document.getElementById("wordInput");
+    const translationInput = document.getElementById("translationInput");
+    const definitionInput = document.getElementById("definitionInput");
     const cardsEl = document.getElementById("cards");
-    const generateBtn = document.getElementById("generateBtn");
-    const generateFromFileBtn = document.getElementById("generateFromFileBtn");
-    const subtitleFileInput = document.getElementById("subtitleFile");
-    const generateFromTranscriptBtn = document.getElementById("generateFromTranscriptBtn");
-    const transcriptUrlInput = document.getElementById("transcriptUrl");
 
-    const knownKey = "yt_word_knowledge";
+    let currentSetId = null;
+    let foldersCache = [];
+    let studyQueue = [];
+    let currentStudyCard = null;
 
-    function loadKnowledge() {
-      try {
-        return JSON.parse(localStorage.getItem(knownKey)) || {};
-      } catch (err) {
-        return {};
-      }
+    function getSetIdFromHash() {
+      const hash = window.location.hash.replace("#", "");
+      const params = new URLSearchParams(hash);
+      return params.get("set");
     }
 
-    function saveKnowledge(data) {
-      localStorage.setItem(knownKey, JSON.stringify(data));
+    function setHash(id) {
+      const params = new URLSearchParams();
+      params.set("set", id);
+      window.location.hash = params.toString();
     }
 
-    function updateKnowledge(word, deltaEase, knownBoost = 0) {
-      const knowledge = loadKnowledge();
-      const entry = knowledge[word] || { ease: 0.4, seenCount: 0, lastSeen: 0 };
-      entry.ease = Math.max(0, Math.min(1, entry.ease + deltaEase));
-      entry.seenCount += knownBoost;
-      entry.lastSeen = Date.now();
-      knowledge[word] = entry;
-      saveKnowledge(knowledge);
+    function showSetLink(id) {
+      const url = `${window.location.origin}${window.location.pathname}#set=${id}`;
+      setLinkEl.textContent = url;
     }
 
-    function tokenize(text) {
-      const matches = text.toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g);
-      return matches || [];
-    }
-
-    function parseTimeToSeconds(timeStr) {
-      // Supports "HH:MM:SS,mmm" (SRT) and "HH:MM:SS.mmm" (VTT)
-      const clean = timeStr.trim().replace(",", ".");
-      const parts = clean.split(":");
-      if (parts.length !== 3) return 0;
-      const [h, m, s] = parts;
-      return Number(h) * 3600 + Number(m) * 60 + Number(s);
-    }
-
-    function parseSubtitleContent(text) {
-      const lines = text.split(/\r?\n/);
-      const captions = [];
-      let i = 0;
-
-      while (i < lines.length) {
-        const line = lines[i].trim();
-        if (!line) {
-          i += 1;
-          continue;
-        }
-
-        // Skip index line if it's a number.
-        if (/^\d+$/.test(line)) {
-          i += 1;
-        }
-
-        const timeLine = (lines[i] || "").trim();
-        if (!timeLine.includes("-->")) {
-          i += 1;
-          continue;
-        }
-
-        const [startRaw] = timeLine.split("-->").map((part) => part.trim());
-        const start = parseTimeToSeconds(startRaw);
-        i += 1;
-
-        const textLines = [];
-        while (i < lines.length && lines[i].trim()) {
-          textLines.push(lines[i].trim());
-          i += 1;
-        }
-
-        const captionText = textLines.join(" ").replace(/\s+/g, " ").trim();
-        if (captionText) {
-          captions.push({ start, text: captionText });
-        }
-      }
-
-      return captions;
-    }
-
-    function buildWordStats(captions) {
-      const stats = {};
-      captions.forEach((cap) => {
-        const tokens = tokenize(cap.text);
-        tokens.forEach((word) => {
-          if (word.length < 3 || stopwords.has(word)) return;
-          if (!stats[word]) {
-            stats[word] = { count: 0, times: [] };
-          }
-          stats[word].count += 1;
-          stats[word].times.push(cap.start);
-        });
-      });
-      return stats;
-    }
-
-    function scoreWords(stats, knowledge) {
-      const now = Date.now();
-      return Object.entries(stats).map(([word, data]) => {
-        const known = knowledge[word];
-        const base = Math.log2(data.count + 1);
-        let score = base;
-        if (!known) {
-          score += 10;
-        } else {
-          const familiarity = Math.min(1, known.seenCount / 6);
-          const days = Math.min(90, (now - known.lastSeen) / (1000 * 60 * 60 * 24));
-          score += (1 - familiarity) * 4 + (days / 30);
-        }
-        return { word, score, count: data.count, time: data.times[0] };
-      });
-    }
-
-    function pickTop(words, count) {
-      return words.sort((a, b) => b.score - a.score).slice(0, count);
-    }
-
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs.toString().padStart(2, "0")}`;
-    }
-
-    function buildListenUrl(videoUrl, start) {
-      if (!videoUrl || start === null || start === undefined) return "";
-      try {
-        const url = new URL(videoUrl);
-        url.searchParams.set("t", Math.floor(start));
-        return url.toString();
-      } catch (err) {
-        return videoUrl;
-      }
-    }
-
-    async function fetchCaptions(videoUrl, lang) {
-      const params = new URLSearchParams({ url: videoUrl, lang });
-      const res = await fetch(`/api/captions?${params.toString()}`);
-      const contentType = res.headers.get("content-type") || "";
-      if (!res.ok) {
-        let errorMessage = "Failed to fetch captions.";
-        if (contentType.includes("application/json")) {
-          const error = await res.json();
-          const attempted = Array.isArray(error.attemptedLangs) ? ` Attempted: ${error.attemptedLangs.join(", ")}.` : "";
-          errorMessage = (error.error || errorMessage) + attempted;
-        } else {
-          errorMessage = `Server returned ${res.status}.`;
-        }
-        throw new Error(errorMessage);
-      }
-      if (!contentType.includes("application/json")) {
-        throw new Error("Server did not return JSON for captions.");
-      }
-      return res.json();
-    }
-
-    async function translateWords(words) {
-      const res = await fetch("/api/translate", {
+    async function createSet() {
+      statusEl.textContent = "Creating set...";
+      const folderId = folderSelect.value || null;
+      const res = await fetch("/api/sets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ words, targetLang: "RU" })
+        body: JSON.stringify({ folderId })
       });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Translation failed.");
+      const data = await res.json();
+      currentSetId = data.id;
+      setHash(currentSetId);
+      showSetLink(currentSetId);
+      statusEl.textContent = "Set created. You can share this link with yourself.";
+      await loadCards();
+      if (folderId) {
+        await loadSetsForFolder(folderId);
       }
-      return res.json();
     }
 
-    function renderCards(items, translations, videoUrl) {
+    async function loadSet(id) {
+      statusEl.textContent = "Loading set...";
+      const res = await fetch(`/api/sets/${id}`);
+      if (!res.ok) {
+        statusEl.textContent = "Set not found. Create a new one.";
+        currentSetId = null;
+        return;
+      }
+      currentSetId = id;
+      showSetLink(id);
+      statusEl.textContent = "Set loaded.";
+      await loadCards();
+    }
+
+    async function loadCards() {
+      if (!currentSetId) return;
+      const res = await fetch(`/api/sets/${currentSetId}/cards`);
+      const data = await res.json();
+      renderCards(data.cards || []);
+    }
+
+    function renderCards(cards) {
       cardsEl.innerHTML = "";
-      items.forEach((item) => {
-        const card = document.createElement("div");
-        card.className = "card";
+      cards.forEach((card) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "card";
+
+        const inner = document.createElement("div");
+        inner.className = "card-inner";
+
+        const front = document.createElement("div");
+        front.className = "card-face card-front";
 
         const wordEl = document.createElement("div");
         wordEl.className = "word";
-        wordEl.textContent = item.word;
+        wordEl.textContent = card.word;
+
+        const speakBtn = document.createElement("button");
+        speakBtn.className = "speak";
+        speakBtn.textContent = "Play";
+        speakBtn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          speakWord(card.word);
+        });
+
+        front.append(wordEl, speakBtn);
+
+        const back = document.createElement("div");
+        back.className = "card-face card-back";
 
         const translationEl = document.createElement("div");
         translationEl.className = "translation";
-        translationEl.textContent = translations[item.word] || "…";
+        translationEl.textContent = card.translation;
 
-        const meta = document.createElement("div");
-        meta.className = "meta";
-        meta.textContent = item.time === null || item.time === undefined
-          ? `Appears ${item.count}x • No timestamp`
-          : `Appears ${item.count}x • ${formatTime(item.time)}`;
+        const defEl = document.createElement("div");
+        defEl.className = "definition";
+        defEl.textContent = card.definition || "";
 
-        const actions = document.createElement("div");
-        actions.className = "actions";
+        const exampleEl = document.createElement("div");
+        exampleEl.className = "example";
+        exampleEl.textContent = card.example || "";
 
-        const listen = document.createElement("a");
-        const listenUrl = buildListenUrl(videoUrl, item.time);
-        listen.textContent = "Listen";
-        if (listenUrl) {
-          listen.href = listenUrl;
-          listen.target = "_blank";
-          listen.rel = "noreferrer";
-        } else {
-          listen.style.opacity = "0.5";
-          listen.style.pointerEvents = "none";
-          listen.title = "No timestamp available for this transcript.";
-        }
+        const factEl = document.createElement("div");
+        factEl.className = "fact";
+        factEl.textContent = card.fact || "";
 
-        const knownBtn = document.createElement("button");
-        knownBtn.textContent = "Known";
-        knownBtn.className = "known";
-        knownBtn.addEventListener("click", () => {
-          updateKnowledge(item.word, 0.2, 1);
-          card.style.opacity = "0.4";
+        back.append(translationEl, defEl, exampleEl, factEl);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "remove";
+        removeBtn.textContent = "Delete";
+        removeBtn.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          await fetch(`/api/sets/${currentSetId}/cards/${card.id}`, { method: "DELETE" });
+          await loadCards();
         });
 
-        const studyBtn = document.createElement("button");
-        studyBtn.textContent = "Study";
-        studyBtn.className = "study";
-        studyBtn.addEventListener("click", () => {
-          updateKnowledge(item.word, -0.1, 0);
-          card.style.opacity = "1";
+        inner.append(front, back);
+        wrapper.append(inner, removeBtn);
+        wrapper.addEventListener("click", () => {
+          wrapper.classList.toggle("is-flipped");
         });
 
-        actions.append(listen, knownBtn, studyBtn);
-        card.append(wordEl, translationEl, meta, actions);
-        cardsEl.appendChild(card);
+        cardsEl.appendChild(wrapper);
       });
     }
 
-    generateBtn.addEventListener("click", async () => {
-      const videoUrl = document.getElementById("videoUrl").value.trim();
-      const cardCount = Number(document.getElementById("cardCount").value || 20);
-      const lang = document.getElementById("captionLang").value;
+    function weightedPick(cards) {
+      const weights = cards.map((card) => {
+        const good = card.good_count || 0;
+        const bad = card.bad_count || 0;
+        return (bad + 1) / (good + 1);
+      });
+      const total = weights.reduce((sum, w) => sum + w, 0);
+      let roll = Math.random() * total;
+      for (let i = 0; i < cards.length; i += 1) {
+        roll -= weights[i];
+        if (roll <= 0) return cards[i];
+      }
+      return cards[0];
+    }
 
-      if (!videoUrl) {
-        statusEl.textContent = "Please paste a YouTube link.";
+    function speakWord(word) {
+      if (!word) return;
+      if (!("speechSynthesis" in window)) {
+        statusEl.textContent = "Speech synthesis is not supported in this browser.";
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = "en-US";
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
+
+    async function openStudyMode() {
+      if (!currentSetId) {
+        statusEl.textContent = "Create a set first.";
+        return;
+      }
+      const res = await fetch(`/api/sets/${currentSetId}/cards`);
+      const data = await res.json();
+      studyQueue = (data.cards || []).slice();
+      if (!studyQueue.length) {
+        statusEl.textContent = "No cards to study.";
+        return;
+      }
+      studyOverlay.classList.add("is-open");
+      showNextStudyCard();
+    }
+
+    function showNextStudyCard() {
+      if (!studyQueue.length) {
+        studyStatus.textContent = "No cards to study.";
+        return;
+      }
+      currentStudyCard = weightedPick(studyQueue);
+      studyCard.classList.remove("is-flipped");
+      studyWord.textContent = currentStudyCard.word;
+      studyTranslation.textContent = currentStudyCard.translation;
+      studyDefinition.textContent = currentStudyCard.definition || "";
+      studyExample.textContent = currentStudyCard.example || "";
+      studyFact.textContent = currentStudyCard.fact || "";
+      studyStatus.textContent = `Studying ${studyQueue.length} cards`;
+    }
+
+    async function submitReview(result) {
+      if (!currentStudyCard) return;
+      await fetch(`/api/sets/${currentSetId}/cards/${currentStudyCard.id}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ result })
+      });
+      if (result === "good") {
+        currentStudyCard.good_count = (currentStudyCard.good_count || 0) + 1;
+      } else {
+        currentStudyCard.bad_count = (currentStudyCard.bad_count || 0) + 1;
+      }
+      showNextStudyCard();
+    }
+
+    async function loadFolders() {
+      const res = await fetch("/api/folders");
+      const data = await res.json();
+      foldersCache = data.folders || [];
+      renderFolderSelect();
+      if (foldersCache.length === 0) {
+        folderStatus.textContent = "No folders yet. Create one above.";
+        setList.textContent = "";
+      } else {
+        folderStatus.textContent = `${foldersCache.length} folder(s).`;
+        await loadSetsForFolder(folderSelect.value);
+      }
+    }
+
+    function renderFolderSelect() {
+      folderSelect.innerHTML = "";
+      const defaultOption = document.createElement("option");
+      defaultOption.value = "";
+      defaultOption.textContent = "No folder (default)";
+      folderSelect.appendChild(defaultOption);
+
+      foldersCache.forEach((folder) => {
+        const option = document.createElement("option");
+        option.value = folder.id;
+        option.textContent = folder.name;
+        folderSelect.appendChild(option);
+      });
+    }
+
+    async function loadSetsForFolder(folderId) {
+      if (!folderId) {
+        setList.textContent = "No folder selected.";
+        return;
+      }
+      const res = await fetch(`/api/folders/${folderId}/sets`);
+      const data = await res.json();
+      const sets = data.sets || [];
+      if (!sets.length) {
+        setList.textContent = "No sets in this folder yet.";
+        return;
+      }
+      setList.innerHTML = sets
+        .map((set) => `<button data-set="${set.id}">Open set ${set.id}</button>`)
+        .join(" ");
+
+      setList.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-set");
+          if (id) loadSet(id);
+        });
+      });
+    }
+
+    async function addCard() {
+      if (!currentSetId) {
+        statusEl.textContent = "Create a set first.";
         return;
       }
 
-      statusEl.textContent = "Fetching captions...";
-      cardsEl.innerHTML = "";
+      const word = wordInput.value.trim();
+      const translation = translationInput.value.trim();
+      const definition = definitionInput.value.trim();
 
-      try {
-        const { captions } = await fetchCaptions(videoUrl, lang);
-        statusEl.textContent = `Captions loaded: ${captions.length} lines. Scoring words...`;
-
-        const knowledge = loadKnowledge();
-        const stats = buildWordStats(captions);
-        const scored = scoreWords(stats, knowledge);
-        const selected = pickTop(scored, cardCount);
-
-        if (selected.length === 0) {
-          statusEl.textContent = "No suitable words found. Try another video or language.";
-          return;
-        }
-
-        statusEl.textContent = "Translating...";
-        const { translations } = await translateWords(selected.map(item => item.word));
-
-        statusEl.textContent = `Done. ${selected.length} cards ready.`;
-        renderCards(selected, translations, videoUrl);
-      } catch (err) {
-        statusEl.textContent = err.message;
+      if (!word || !translation) {
+        statusEl.textContent = "Word and translation are required.";
+        return;
       }
+
+      statusEl.textContent = "Saving card...";
+      const res = await fetch(`/api/sets/${currentSetId}/cards`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word, translation, definition })
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        statusEl.textContent = error.error || "Failed to save card.";
+        return;
+      }
+
+      wordInput.value = "";
+      translationInput.value = "";
+      definitionInput.value = "";
+
+      statusEl.textContent = "Card saved.";
+      await loadCards();
+    }
+
+    function parseBulk(text) {
+      const lines = text
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      const cards = [];
+      for (const line of lines) {
+        const cleaned = line.replace(/^\d+\.\s*/, "").trim();
+        if (!cleaned) continue;
+
+        const parts = cleaned.split(";").map((part) => part.trim()).filter(Boolean);
+        if (parts.length < 2) continue;
+
+        const word = parts[0];
+        const translation = parts[1] || "";
+        const definition = parts[2] || "";
+        const example = (parts[3] || "").replace(/^["“”']|["“”']$/g, "").trim();
+        const fact = parts.slice(4).join("; ").trim();
+
+        if (word && translation) {
+          cards.push({ word, translation, definition, example, fact });
+        }
+      }
+      return cards;
+    }
+
+    async function addManyCards() {
+      if (!currentSetId) {
+        statusEl.textContent = "Create a set first.";
+        return;
+      }
+
+      const raw = bulkInput.value.trim();
+      if (!raw) {
+        statusEl.textContent = "Paste your list first.";
+        return;
+      }
+
+      const parsed = parseBulk(raw);
+      if (!parsed.length) {
+        statusEl.textContent = "No cards found. Check the format.";
+        return;
+      }
+
+      statusEl.textContent = `Saving ${parsed.length} cards...`;
+      for (const item of parsed) {
+        await fetch(`/api/sets/${currentSetId}/cards`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(item)
+        });
+      }
+
+      bulkInput.value = "";
+      statusEl.textContent = `Saved ${parsed.length} cards.`;
+      await loadCards();
+    }
+
+    newSetBtn.addEventListener("click", createSet);
+    addCardBtn.addEventListener("click", addCard);
+    bulkAddBtn.addEventListener("click", addManyCards);
+    studyBtn.addEventListener("click", openStudyMode);
+    closeStudyBtn.addEventListener("click", () => {
+      studyOverlay.classList.remove("is-open");
+    });
+    studyCard.addEventListener("click", () => {
+      studyCard.classList.toggle("is-flipped");
+    });
+    studySpeakBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      speakWord(studyWord.textContent);
+    });
+    studyBadBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      submitReview("bad");
+    });
+    studyGoodBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      submitReview("good");
+    });
+    createFolderBtn.addEventListener("click", async () => {
+      const name = folderNameInput.value.trim();
+      if (!name) {
+        folderStatus.textContent = "Folder name is required.";
+        return;
+      }
+      folderStatus.textContent = "Creating folder...";
+      await fetch("/api/folders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      folderNameInput.value = "";
+      await loadFolders();
+    });
+    refreshFoldersBtn.addEventListener("click", loadFolders);
+    folderSelect.addEventListener("change", async () => {
+      await loadSetsForFolder(folderSelect.value);
     });
 
-    generateFromFileBtn.addEventListener("click", async () => {
-      const file = subtitleFileInput.files[0];
-      const videoUrl = document.getElementById("videoUrl").value.trim();
-      const cardCount = Number(document.getElementById("cardCount").value || 20);
-
-      if (!file) {
-        statusEl.textContent = "Please choose a .srt or .vtt file.";
-        return;
-      }
-
-      statusEl.textContent = "Reading subtitle file...";
-      cardsEl.innerHTML = "";
-
-      try {
-        const content = await file.text();
-        const captions = parseSubtitleContent(content);
-        if (!captions.length) {
-          statusEl.textContent = "No captions found in the file.";
-          return;
-        }
-
-        statusEl.textContent = `Loaded ${captions.length} lines. Scoring words...`;
-        const knowledge = loadKnowledge();
-        const stats = buildWordStats(captions);
-        const scored = scoreWords(stats, knowledge);
-        const selected = pickTop(scored, cardCount);
-
-        if (selected.length === 0) {
-          statusEl.textContent = "No suitable words found in this file.";
-          return;
-        }
-
-        statusEl.textContent = "Translating...";
-        const { translations } = await translateWords(selected.map(item => item.word));
-
-        statusEl.textContent = `Done. ${selected.length} cards ready.`;
-        renderCards(selected, translations, videoUrl || "");
-      } catch (err) {
-        statusEl.textContent = err.message;
-      }
-    });
-
-    generateFromTranscriptBtn.addEventListener("click", async () => {
-      const transcriptUrl = transcriptUrlInput.value.trim();
-      const videoUrl = document.getElementById("videoUrl").value.trim();
-      const cardCount = Number(document.getElementById("cardCount").value || 20);
-
-      if (!transcriptUrl) {
-        statusEl.textContent = "Please paste a transcript link.";
-        return;
-      }
-
-      statusEl.textContent = "Fetching transcript...";
-      cardsEl.innerHTML = "";
-
-      try {
-        const res = await fetch(`/api/transcript?url=${encodeURIComponent(transcriptUrl)}`);
-        const contentType = res.headers.get("content-type") || "";
-        if (!res.ok) {
-          let errorMessage = "Failed to fetch transcript.";
-          if (contentType.includes("application/json")) {
-            const error = await res.json();
-            const details = [error.status, error.statusText].filter(Boolean).join(" ");
-            const snippet = error.snippet ? ` ${error.snippet}` : "";
-            errorMessage = `${error.error || errorMessage}${details ? ` (${details})` : ""}${snippet}`;
-          } else {
-            errorMessage = `Server returned ${res.status}.`;
-          }
-          throw new Error(errorMessage);
-        }
-
-        if (!contentType.includes("application/json")) {
-          throw new Error("Server did not return JSON for transcript.");
-        }
-
-        const data = await res.json();
-        const captions = data.captions || [];
-        if (!captions.length) {
-          statusEl.textContent = "Transcript is empty.";
-          return;
-        }
-
-        statusEl.textContent = `Transcript loaded: ${captions.length} lines. Scoring words...`;
-        const knowledge = loadKnowledge();
-        const stats = buildWordStats(captions);
-        const scored = scoreWords(stats, knowledge);
-        const selected = pickTop(scored, cardCount);
-
-        if (selected.length === 0) {
-          statusEl.textContent = "No suitable words found in this transcript.";
-          return;
-        }
-
-        statusEl.textContent = "Translating...";
-        const { translations } = await translateWords(selected.map(item => item.word));
-
-        statusEl.textContent = `Done. ${selected.length} cards ready.`;
-        renderCards(selected, translations, videoUrl || "");
-      } catch (err) {
-        statusEl.textContent = err.message;
+    const initialSet = getSetIdFromHash();
+    loadFolders().then(() => {
+      if (initialSet) {
+        loadSet(initialSet);
+      } else {
+        statusEl.textContent = "Create a set to start adding cards.";
       }
     });
   </script>
