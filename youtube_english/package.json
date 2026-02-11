@@ -1,6 +1,6 @@
 {
-  "name": "youtube-english-cards",
-  "version": "0.2.0",
+  "name": "srs-trainer",
+  "version": "1.0.0",
   "private": true,
   "type": "commonjs",
   "scripts": {

@@ -1,12 +1,44 @@
 const path = require("path");
-const crypto = require("crypto");
 const express = require("express");
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DB_PATH = path.join(__dirname, "data.db");
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, "data.db");
+
+const TEST_WORDS = [
+  { en: "archipelago", ru: "архипелаг" },
+  { en: "seafloor", ru: "морское дно" },
+  { en: "silt", ru: "ил" },
+  { en: "capsized", ru: "перевернувшийся" },
+  { en: "reef", ru: "риф" },
+  { en: "current", ru: "течение" },
+  { en: "tide", ru: "прилив" },
+  { en: "ebb", ru: "отлив" },
+  { en: "depth", ru: "глубина" },
+  { en: "surface", ru: "поверхность" },
+  { en: "pressure", ru: "давление" },
+  { en: "oxygen", ru: "кислород" },
+  { en: "vessel", ru: "судно" },
+  { en: "salvage", ru: "подъём затонувшего" },
+  { en: "wreckage", ru: "обломки" },
+  { en: "compass", ru: "компас" },
+  { en: "anchor", ru: "якорь" },
+  { en: "horizon", ru: "горизонт" },
+  { en: "swell", ru: "зыбь" },
+  { en: "cargo", ru: "груз" },
+  { en: "navigate", ru: "навигация" },
+  { en: "voyage", ru: "путешествие" },
+  { en: "fathom", ru: "сажень" },
+  { en: "harbor", ru: "гавань" },
+  { en: "lighthouse", ru: "маяк" },
+  { en: "current", ru: "текущий" },
+  { en: "submerge", ru: "погружать" },
+  { en: "float", ru: "плавать" },
+  { en: "rescue", ru: "спасать" },
+  { en: "buoy", ru: "буй" }
+];
 
 let db;
 
@@ -16,202 +48,52 @@ app.use(express.static(path.resolve(__dirname)));
 async function initDb() {
   db = await open({ filename: DB_PATH, driver: sqlite3.Database });
   await db.exec(`
-    CREATE TABLE IF NOT EXISTS folders (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS sets (
-      id TEXT PRIMARY KEY,
-      folder_id TEXT,
-      created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS cards (
+    CREATE TABLE IF NOT EXISTS words (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      set_id TEXT NOT NULL,
-      word TEXT NOT NULL,
-      translation TEXT NOT NULL,
-      definition TEXT,
-      example TEXT,
-      fact TEXT,
-      good_count INTEGER DEFAULT 0,
-      bad_count INTEGER DEFAULT 0,
-      last_seen TEXT,
-      created_at TEXT NOT NULL,
-      FOREIGN KEY(set_id) REFERENCES sets(id)
+      en TEXT NOT NULL,
+      ru TEXT NOT NULL,
+      level INTEGER NOT NULL,
+      next_review INTEGER NOT NULL,
+      streak INTEGER NOT NULL
     );
   `);
 
-  const columns = await db.all("PRAGMA table_info(cards)");
-  const columnNames = new Set(columns.map((col) => col.name));
-  if (!columnNames.has("example")) {
-    await db.exec("ALTER TABLE cards ADD COLUMN example TEXT;");
+  const row = await db.get("SELECT COUNT(*) as count FROM words");
+  if (row.count === 0) {
+    const now = Date.now();
+    const stmt = await db.prepare(
+      "INSERT INTO words (en, ru, level, next_review, streak) VALUES (?, ?, ?, ?, ?)"
+    );
+    for (const item of TEST_WORDS) {
+      await stmt.run(item.en, item.ru, 1, now, 0);
+    }
+    await stmt.finalize();
   }
-  if (!columnNames.has("fact")) {
-    await db.exec("ALTER TABLE cards ADD COLUMN fact TEXT;");
-  }
-  if (!columnNames.has("good_count")) {
-    await db.exec("ALTER TABLE cards ADD COLUMN good_count INTEGER DEFAULT 0;");
-  }
-  if (!columnNames.has("bad_count")) {
-    await db.exec("ALTER TABLE cards ADD COLUMN bad_count INTEGER DEFAULT 0;");
-  }
-  if (!columnNames.has("last_seen")) {
-    await db.exec("ALTER TABLE cards ADD COLUMN last_seen TEXT;");
-  }
-
-  const setColumns = await db.all("PRAGMA table_info(sets)");
-  const setColumnNames = new Set(setColumns.map((col) => col.name));
-  if (!setColumnNames.has("folder_id")) {
-    await db.exec("ALTER TABLE sets ADD COLUMN folder_id TEXT;");
-  }
-}
-
-function makeId() {
-  return crypto.randomBytes(10).toString("hex");
 }
 
 app.get("/api/health", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/folders", async (req, res) => {
-  const folders = await db.all(
-    "SELECT id, name, created_at FROM folders ORDER BY created_at DESC"
+app.get("/api/words", async (req, res) => {
+  const words = await db.all(
+    "SELECT id, en, ru, level, next_review, streak FROM words ORDER BY id"
   );
-  res.json({ folders });
+  res.json({ words });
 });
 
-app.post("/api/folders", async (req, res) => {
-  const { name } = req.body || {};
-  if (!name || !name.trim()) {
-    return res.status(400).json({ error: "Folder name is required." });
-  }
-  const id = makeId();
-  const createdAt = new Date().toISOString();
-  await db.run("INSERT INTO folders (id, name, created_at) VALUES (?, ?, ?)", [
-    id,
-    name.trim(),
-    createdAt
-  ]);
-  res.json({ id, name: name.trim(), created_at: createdAt });
-});
-
-app.get("/api/folders/:id/sets", async (req, res) => {
+app.post("/api/words/:id", async (req, res) => {
   const { id } = req.params;
-  const sets = await db.all(
-    "SELECT id, folder_id, created_at FROM sets WHERE folder_id = ? ORDER BY created_at DESC",
-    [id]
-  );
-  res.json({ sets });
-});
+  const { level, next_review, streak } = req.body || {};
 
-app.post("/api/sets", async (req, res) => {
-  const { folderId } = req.body || {};
-  const id = makeId();
-  const createdAt = new Date().toISOString();
-  await db.run("INSERT INTO sets (id, folder_id, created_at) VALUES (?, ?, ?)", [
-    id,
-    folderId || null,
-    createdAt
-  ]);
-  res.json({ id, folderId: folderId || null, createdAt });
-});
-
-app.get("/api/sets/:id", async (req, res) => {
-  const { id } = req.params;
-  const set = await db.get(
-    "SELECT id, folder_id, created_at FROM sets WHERE id = ?",
-    [id]
-  );
-  if (!set) return res.status(404).json({ error: "Set not found." });
-  res.json(set);
-});
-
-app.get("/api/sets/:id/cards", async (req, res) => {
-  const { id } = req.params;
-  const set = await db.get("SELECT id FROM sets WHERE id = ?", [id]);
-  if (!set) return res.status(404).json({ error: "Set not found." });
-
-  const cards = await db.all(
-    "SELECT id, word, translation, definition, example, fact, good_count, bad_count, last_seen, created_at FROM cards WHERE set_id = ? ORDER BY id DESC",
-    [id]
-  );
-  res.json({ cards });
-});
-
-app.post("/api/sets/:id/cards", async (req, res) => {
-  const { id } = req.params;
-  const { word, translation, definition, example, fact } = req.body || {};
-
-  if (!word || !translation) {
-    return res.status(400).json({ error: "word and translation are required." });
+  if (!Number.isInteger(level) || !Number.isInteger(next_review) || !Number.isInteger(streak)) {
+    return res.status(400).json({ error: "level, next_review, streak must be integers." });
   }
 
-  const set = await db.get("SELECT id FROM sets WHERE id = ?", [id]);
-  if (!set) return res.status(404).json({ error: "Set not found." });
-
-  const createdAt = new Date().toISOString();
-  const result = await db.run(
-    "INSERT INTO cards (set_id, word, translation, definition, example, fact, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    [
-      id,
-      word.trim(),
-      translation.trim(),
-      definition ? definition.trim() : null,
-      example ? example.trim() : null,
-      fact ? fact.trim() : null,
-      createdAt
-    ]
+  await db.run(
+    "UPDATE words SET level = ?, next_review = ?, streak = ? WHERE id = ?",
+    [level, next_review, streak, id]
   );
-
-  res.json({
-    id: result.lastID,
-    word: word.trim(),
-    translation: translation.trim(),
-    definition: definition ? definition.trim() : null,
-    example: example ? example.trim() : null,
-    fact: fact ? fact.trim() : null,
-    good_count: 0,
-    bad_count: 0,
-    last_seen: null,
-    created_at: createdAt
-  });
-});
-
-app.delete("/api/sets/:id/cards/:cardId", async (req, res) => {
-  const { id, cardId } = req.params;
-  const set = await db.get("SELECT id FROM sets WHERE id = ?", [id]);
-  if (!set) return res.status(404).json({ error: "Set not found." });
-
-  await db.run("DELETE FROM cards WHERE id = ? AND set_id = ?", [cardId, id]);
-  res.json({ ok: true });
-});
-
-app.post("/api/sets/:id/cards/:cardId/review", async (req, res) => {
-  const { id, cardId } = req.params;
-  const { result } = req.body || {};
-  if (!["good", "bad"].includes(result)) {
-    return res.status(400).json({ error: "result must be 'good' or 'bad'." });
-  }
-
-  const set = await db.get("SELECT id FROM sets WHERE id = ?", [id]);
-  if (!set) return res.status(404).json({ error: "Set not found." });
-
-  const now = new Date().toISOString();
-  if (result === "good") {
-    await db.run(
-      "UPDATE cards SET good_count = good_count + 1, last_seen = ? WHERE id = ? AND set_id = ?",
-      [now, cardId, id]
-    );
-  } else {
-    await db.run(
-      "UPDATE cards SET bad_count = bad_count + 1, last_seen = ? WHERE id = ? AND set_id = ?",
-      [now, cardId, id]
-    );
-  }
 
   res.json({ ok: true });
 });
