@@ -192,6 +192,17 @@
             font-size: 14px;
             margin-top: 5px;
         }
+
+        .custom-rack-fields {
+            display: none;
+            margin-top: 12px;
+            gap: 10px;
+        }
+
+        .custom-rack-fields.show {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
     </style>
 </head>
 <body>
@@ -216,6 +227,19 @@
                 <option value="10.9">Фанера берёзовая 4 мм - 10,9 €/м²</option>
                 <option value="5">Фальката 3 мм - 5 €/м²</option>
             </select>
+        </div>
+
+        <div class="input-group">
+            <label for="rackMaterial">Материал рейки:</label>
+            <select id="rackMaterial">
+                <option value="2">Рейка 23 × 45 мм - 2 €/м</option>
+                <option value="0.86">Рейка 15 × 30 мм - 0,86 €/м</option>
+                <option value="custom">Своя рейка</option>
+            </select>
+            <div id="customRackFields" class="custom-rack-fields">
+                <input type="text" id="customRackName" placeholder="Сечение, например: 18 × 40 мм">
+                <input type="text" id="customRackPrice" inputmode="decimal" pattern="[0-9]*[\.,]?[0-9]*" placeholder="Цена за метр, например: 1,25">
+            </div>
         </div>
 
         <div class="input-group" style="display:flex; gap:10px; margin-top:10px;">
@@ -277,8 +301,8 @@
 
             <div class="calc-step">
                 <div><strong>3. Материал реек:</strong></div>
-                <div class="calc-formula">Рейки = Периметр × 2 €/м</div>
-                <div class="calc-formula">= <span id="calcPerimeter2">0.00</span> × 2</div>
+                <div class="calc-formula">Рейки = Периметр × Цена рейки за м</div>
+                <div class="calc-formula">= <span id="calcPerimeter2">0.00</span> × <span id="calcRackPrice">0.00</span></div>
                 <div class="calc-result">= <span id="calcRackCalc">0.00</span> €</div>
             </div>
 
@@ -321,9 +345,19 @@
     </div>
 
     <script>
-        const inputs = ['width', 'height', 'backMaterial'];
+        const inputs = ['width', 'height', 'backMaterial', 'rackMaterial', 'customRackName', 'customRackPrice'];
         inputs.forEach(id => {
             document.getElementById(id).addEventListener('change', saveToLocalStorage);
+        });
+
+        document.getElementById('rackMaterial').addEventListener('change', () => {
+            toggleCustomRackFields();
+            calculate();
+        });
+        document.getElementById('customRackName').addEventListener('input', saveToLocalStorage);
+        document.getElementById('customRackPrice').addEventListener('input', () => {
+            saveToLocalStorage();
+            calculate();
         });
 
         function armWheelForElement(el) {
@@ -402,9 +436,16 @@
             document.getElementById('width').value = '';
             document.getElementById('height').value = '';
             document.getElementById('backMaterial').selectedIndex = 0;
+            document.getElementById('rackMaterial').selectedIndex = 0;
+            document.getElementById('customRackName').value = '';
+            document.getElementById('customRackPrice').value = '';
             storageRemove('frameWidth');
             storageRemove('frameHeight');
             storageRemove('backMaterial');
+            storageRemove('rackMaterial');
+            storageRemove('customRackName');
+            storageRemove('customRackPrice');
+            toggleCustomRackFields();
             calculate();
         }
 
@@ -438,16 +479,36 @@
             if (_storageFallback.hasOwnProperty(key)) delete _storageFallback[key];
         }
 
+        function toggleCustomRackFields() {
+            const isCustomRack = document.getElementById('rackMaterial').value === 'custom';
+            document.getElementById('customRackFields').classList.toggle('show', isCustomRack);
+        }
+
+        function getRackPrice() {
+            const rackMaterial = document.getElementById('rackMaterial').value;
+            if (rackMaterial === 'custom') {
+                return Math.max(0, parseNumber(document.getElementById('customRackPrice').value));
+            }
+            return Math.max(0, parseNumber(rackMaterial));
+        }
+
         // Загрузка сохраненных данных при загрузке страницы (использует безопасный getter)
         function loadFromLocalStorage() {
             const savedWidth = storageGet('frameWidth');
             const savedHeight = storageGet('frameHeight');
             const savedMaterial = storageGet('backMaterial');
+            const savedRackMaterial = storageGet('rackMaterial');
+            const savedCustomRackName = storageGet('customRackName');
+            const savedCustomRackPrice = storageGet('customRackPrice');
 
             if (savedWidth) document.getElementById('width').value = savedWidth;
             if (savedHeight) document.getElementById('height').value = savedHeight;
             if (savedMaterial) document.getElementById('backMaterial').value = savedMaterial;
+            if (savedRackMaterial) document.getElementById('rackMaterial').value = savedRackMaterial;
+            if (savedCustomRackName) document.getElementById('customRackName').value = savedCustomRackName;
+            if (savedCustomRackPrice) document.getElementById('customRackPrice').value = savedCustomRackPrice;
 
+            toggleCustomRackFields();
             calculate();
         }
 
@@ -456,12 +517,16 @@
             storageSet('frameWidth', document.getElementById('width').value);
             storageSet('frameHeight', document.getElementById('height').value);
             storageSet('backMaterial', document.getElementById('backMaterial').value);
+            storageSet('rackMaterial', document.getElementById('rackMaterial').value);
+            storageSet('customRackName', document.getElementById('customRackName').value);
+            storageSet('customRackPrice', document.getElementById('customRackPrice').value);
         }
 
         function calculate() {
             const width = parseNumber(document.getElementById('width').value);
             const height = parseNumber(document.getElementById('height').value);
             const backMaterialPrice = parseNumber(document.getElementById('backMaterial').value);
+            const rackPrice = getRackPrice();
 
             // Периметр рамки в метрах
             const perimeter = 2 * (width + height);
@@ -470,7 +535,7 @@
             const area = width * height;
 
             // Расчеты стоимости компонентов
-            const materialRack = perimeter * 2;      // 2 € за метр реек
+            const materialRack = perimeter * rackPrice;
             const materialBack = area * backMaterialPrice;  // цена материала за м²
             const labor = perimeter * 4;             // 4 € за метр работы
             const electricity = perimeter * 0.7;     // 0.7 € за метр электричества
@@ -510,6 +575,7 @@
 
             // Шаг 3: Материал реек
             document.getElementById('calcPerimeter2').textContent = perimeter.toFixed(2);
+            document.getElementById('calcRackPrice').textContent = rackPrice.toFixed(2);
             document.getElementById('calcRackCalc').textContent = materialRack.toFixed(2);
 
             // Шаг 4: Работа
