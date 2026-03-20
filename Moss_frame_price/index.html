@@ -201,7 +201,7 @@
 
         .custom-rack-fields.show {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
         }
     </style>
 </head>
@@ -237,7 +237,6 @@
                 <option value="custom">Своя рейка</option>
             </select>
             <div id="customRackFields" class="custom-rack-fields">
-                <input type="text" id="customRackName" placeholder="Сечение, например: 18 × 40 мм">
                 <input type="text" id="customRackPrice" inputmode="decimal" pattern="[0-9]*[\.,]?[0-9]*" placeholder="Цена за метр, например: 1,25">
             </div>
         </div>
@@ -345,7 +344,7 @@
     </div>
 
     <script>
-        const inputs = ['width', 'height', 'backMaterial', 'rackMaterial', 'customRackName', 'customRackPrice'];
+        const inputs = ['width', 'height', 'backMaterial', 'rackMaterial', 'customRackPrice'];
         inputs.forEach(id => {
             document.getElementById(id).addEventListener('change', saveToLocalStorage);
         });
@@ -354,7 +353,6 @@
             toggleCustomRackFields();
             calculate();
         });
-        document.getElementById('customRackName').addEventListener('input', saveToLocalStorage);
         document.getElementById('customRackPrice').addEventListener('input', () => {
             saveToLocalStorage();
             calculate();
@@ -437,13 +435,11 @@
             document.getElementById('height').value = '';
             document.getElementById('backMaterial').selectedIndex = 0;
             document.getElementById('rackMaterial').selectedIndex = 0;
-            document.getElementById('customRackName').value = '';
             document.getElementById('customRackPrice').value = '';
             storageRemove('frameWidth');
             storageRemove('frameHeight');
             storageRemove('backMaterial');
             storageRemove('rackMaterial');
-            storageRemove('customRackName');
             storageRemove('customRackPrice');
             toggleCustomRackFields();
             calculate();
@@ -498,14 +494,12 @@
             const savedHeight = storageGet('frameHeight');
             const savedMaterial = storageGet('backMaterial');
             const savedRackMaterial = storageGet('rackMaterial');
-            const savedCustomRackName = storageGet('customRackName');
             const savedCustomRackPrice = storageGet('customRackPrice');
 
             if (savedWidth) document.getElementById('width').value = savedWidth;
             if (savedHeight) document.getElementById('height').value = savedHeight;
             if (savedMaterial) document.getElementById('backMaterial').value = savedMaterial;
             if (savedRackMaterial) document.getElementById('rackMaterial').value = savedRackMaterial;
-            if (savedCustomRackName) document.getElementById('customRackName').value = savedCustomRackName;
             if (savedCustomRackPrice) document.getElementById('customRackPrice').value = savedCustomRackPrice;
 
             toggleCustomRackFields();
@@ -518,7 +512,6 @@
             storageSet('frameHeight', document.getElementById('height').value);
             storageSet('backMaterial', document.getElementById('backMaterial').value);
             storageSet('rackMaterial', document.getElementById('rackMaterial').value);
-            storageSet('customRackName', document.getElementById('customRackName').value);
             storageSet('customRackPrice', document.getElementById('customRackPrice').value);
         }
 
