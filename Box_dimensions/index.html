@@ -610,8 +610,6 @@
         el('length').previousElementSibling.textContent = `Длина ${labelSuffix}`;
         el('height').previousElementSibling.textContent = `Высота ${labelSuffix}`;
         el('thickness').previousElementSibling.textContent = `Толщина ${labelSuffix}`;
-        el('sheetW').previousElementSibling.textContent = `Лист фанеры, ширина ${labelSuffix}`;
-        el('sheetL').previousElementSibling.textContent = `Лист фанеры, длина ${labelSuffix}`;
         el('plywood').previousElementSibling.textContent = 'Толщина фанеры (мм)';
       }
 
@@ -636,12 +634,11 @@
           thickness: toMeters(parseFloat(el('thickness').value || 0)),
           foam: el('foam').checked,
           plywood: parseFloat(el('plywood').value || 0),
-          sheetW: toMeters(parseFloat(el('sheetW').value || 0)),
-          sheetL: toMeters(parseFloat(el('sheetL').value || 0)),
           railSubtractMm: parseFloat(el('railSubtractMm').value || 0),
           sheetProductPrice: parseFloat(el('sheetProduct').value || 0),
           bulkMode: el('bulkMode').value,
           facadeSplitCount: parseInt(el('facadeSplit').value || '2', 10),
+          foamType: parseFloat(el('foamType').value || 0),
         };
       }
 
@@ -1428,16 +1425,12 @@
         const lengthM = toMeters(parseFloat(el('length').value || 0));
         const heightM = toMeters(parseFloat(el('height').value || 0));
         const thicknessM = toMeters(parseFloat(el('thickness').value || 0));
-        const sheetWM = toMeters(parseFloat(el('sheetW').value || 0));
-        const sheetLM = toMeters(parseFloat(el('sheetL').value || 0));
 
         updateUnitLabels();
 
         el('length').value = roundTo(fromMeters(lengthM), 3);
         el('height').value = roundTo(fromMeters(heightM), 3);
         el('thickness').value = roundTo(fromMeters(thicknessM), 3);
-        el('sheetW').value = roundTo(fromMeters(sheetWM), 3);
-        el('sheetL').value = roundTo(fromMeters(sheetLM), 3);
 
         calc();
       });
@@ -1449,8 +1442,11 @@
         el('thickness').value = 0.04;
         el('foam').checked = false;
         el('plywood').value = 0.004;
-        el('sheetW').value = 1.25;
-        el('sheetL').value = 2.5;
+        el('sheetProduct').value = '3.91';
+        el('bulkMode').value = 'retail';
+        el('facadeSplit').value = '2';
+        el('foamType').value = '1.42';
+        el('railSubtractMm').value = 0;
         calc();
       });
 

@@ -57,18 +57,25 @@ async function initDb() {
       fact TEXT,
       level INTEGER NOT NULL,
       next_review INTEGER NOT NULL,
-      streak INTEGER NOT NULL
+      streak INTEGER NOT NULL,
+      archived INTEGER DEFAULT 0
     );
   `);
+
+  const columns = await db.all("PRAGMA table_info(words)");
+  const columnNames = new Set(columns.map((col) => col.name));
+  if (!columnNames.has("archived")) {
+    await db.exec("ALTER TABLE words ADD COLUMN archived INTEGER DEFAULT 0;");
+  }
 
   const row = await db.get("SELECT COUNT(*) as count FROM words");
   if (row.count === 0) {
     const now = Date.now();
     const stmt = await db.prepare(
-      "INSERT INTO words (en, ru, definition, example, fact, level, next_review, streak) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO words (en, ru, definition, example, fact, level, next_review, streak, archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     for (const item of TEST_WORDS) {
-      await stmt.run(item.en, item.ru, null, null, null, 1, now, 0);
+      await stmt.run(item.en, item.ru, null, null, null, 1, now, 0, 0);
     }
     await stmt.finalize();
   }
@@ -80,7 +87,7 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/words", async (req, res) => {
   const words = await db.all(
-    "SELECT id, en, ru, definition, example, fact, level, next_review, streak FROM words ORDER BY id"
+    "SELECT id, en, ru, definition, example, fact, level, next_review, streak, archived FROM words ORDER BY id"
   );
   res.json({ words });
 });
@@ -92,7 +99,7 @@ app.post("/api/words", async (req, res) => {
   }
   const now = Date.now();
   const stmt = await db.prepare(
-    "INSERT INTO words (en, ru, definition, example, fact, level, next_review, streak) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO words (en, ru, definition, example, fact, level, next_review, streak, archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
   let inserted = 0;
   for (const item of words) {
@@ -105,6 +112,7 @@ app.post("/api/words", async (req, res) => {
       item.fact ? String(item.fact).trim() : null,
       1,
       now,
+      0,
       0
     );
     inserted += 1;
@@ -115,13 +123,13 @@ app.post("/api/words", async (req, res) => {
 
 app.post("/api/words/:id", async (req, res) => {
   const { id } = req.params;
-  const { level, next_review, streak } = req.body || {};
+  const { level, next_review, streak, archived } = req.body || {};
   if (!Number.isInteger(level) || !Number.isInteger(next_review) || !Number.isInteger(streak)) {
     return res.status(400).json({ error: "level, next_review, streak must be integers." });
   }
   await db.run(
-    "UPDATE words SET level = ?, next_review = ?, streak = ? WHERE id = ?",
-    [level, next_review, streak, id]
+    "UPDATE words SET level = ?, next_review = ?, streak = ?, archived = ? WHERE id = ?",
+    [level, next_review, streak, Number(archived) ? 1 : 0, id]
   );
   res.json({ ok: true });
 });
@@ -151,6 +159,7 @@ app.delete("/api/words/:id", async (req, res) => {
   await db.run("DELETE FROM words WHERE id = ?", [id]);
   res.json({ ok: true });
 });
+
 
 initDb()
   .then(() => {

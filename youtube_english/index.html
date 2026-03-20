@@ -70,6 +70,11 @@
       gap: 18px;
     }
 
+    body.focus-mode .list-area.is-open {
+      padding: 24px;
+      background: rgba(10, 11, 15, 0.92);
+    }
+
     .panel {
       background: var(--paper);
       padding: 22px;
@@ -190,6 +195,21 @@
       display: none;
       padding: 12px 14px;
       border-radius: 10px;
+      border: 1px solid rgba(255, 77, 109, 0.8);
+      background: rgba(255, 77, 109, 0.08);
+      font-size: 16px;
+      font-family: inherit;
+      color: #ff8aa3;
+    }
+
+    .answer-result s {
+      color: #ff6b7d;
+    }
+
+    .example-box {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 10px;
       border: 1px solid rgba(61, 126, 244, 0.7);
       background: rgba(61, 126, 244, 0.1);
       font-size: 16px;
@@ -197,13 +217,9 @@
       color: #8fb6ff;
     }
 
-    .answer-result s {
-      color: #ff6b7d;
-    }
-
     .actions {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
 
@@ -313,12 +329,23 @@
 
     .list-area.is-open {
       display: grid;
+      position: fixed;
+      inset: 0;
+      max-height: none;
+      border-radius: 0;
+      padding: 0;
+      background: rgba(10, 11, 15, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 60;
     }
 
     .list-area table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
+      background: var(--paper);
+      border-radius: 0 0 16px 16px;
+      overflow: hidden;
     }
 
     .list-area th,
@@ -329,6 +356,28 @@
       vertical-align: top;
     }
 
+    .list-area td.delete-cell,
+    .list-area th.delete-cell {
+      width: 44px;
+      text-align: center;
+    }
+
+    .delete-row {
+      border: 1px solid rgba(255, 77, 109, 0.5);
+      background: rgba(255, 77, 109, 0.1);
+      color: #ff8aa3;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .dup {
+      outline: 2px solid rgba(255, 77, 109, 0.7);
+      outline-offset: -2px;
+      background: rgba(255, 77, 109, 0.08);
+    }
+
     .list-area th {
       font-family: "JetBrains Mono", monospace;
       font-size: 11px;
@@ -336,8 +385,38 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       position: sticky;
-      top: 0;
+      top: 64px;
       background: var(--paper);
+    }
+
+    .list-area .edit-actions {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 14px 18px;
+      background: rgba(20, 22, 28, 0.98);
+      border-bottom: 1px solid var(--border);
+    }
+
+    body.theme-light .list-area .edit-actions {
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    body.theme-light .list-area .edit-actions input,
+    body.theme-light .list-area .edit-actions button {
+      background: rgba(0, 0, 0, 0.05);
+      color: #1b1b1b;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    .list-area td input {
+      width: 100%;
+      background: var(--input-bg);
+      color: var(--ink);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
     }
 
     .bulk {
@@ -369,7 +448,7 @@
     <div class="panel" id="mainPanel">
       <div class="toolbar">
         <label>
-          <input type="checkbox" id="autoNextToggle" checked />
+          <input type="checkbox" id="autoNextToggle" />
           Auto next
         </label>
         <label>
@@ -380,6 +459,14 @@
             <option value="en-ru">EN → RU</option>
           </select>
         </label>
+        <label>
+          <input type="checkbox" id="practiceToggle" />
+          Practice mode
+        </label>
+        <label>
+          <input type="checkbox" id="practiceHardToggle" />
+          Only hard (Lv 1–2)
+        </label>
         <div>
           <button id="themeToggle">Toggle theme</button>
           <button id="focusToggle">Focus mode</button>
@@ -388,7 +475,6 @@
       <div class="meta">
         <div>Level: <span id="level">1</span></div>
         <div class="direction" id="direction">RU → EN</div>
-        <div class="streak" id="streak">🔥 0</div>
       </div>
       <div class="word" id="prompt">—</div>
       <div style="text-align:center;">
@@ -398,11 +484,11 @@
         <div class="answer-row">
           <input id="answer" type="text" placeholder="Type your answer" autocomplete="off" />
           <div class="answer-result" id="answerResult"></div>
+          <div class="example-box" id="exampleBox"></div>
         </div>
         <div class="actions">
           <button class="check" id="checkBtn">Check</button>
           <button class="reveal" id="revealBtn">Show answer</button>
-          <button class="skip" id="skipBtn">Skip</button>
           <button class="next" id="nextBtn">Next</button>
         </div>
       </div>
@@ -412,8 +498,8 @@
       </div>
       <div class="edit-area" id="editArea">
         <label>
-          English word
-          <input id="editEn" type="text" placeholder="English word" />
+          English (word or phrase)
+          <input id="editEn" type="text" placeholder="English word or phrase" />
         </label>
         <label>
           Russian translation
@@ -439,7 +525,10 @@
         <div class="list-area" id="listArea">
           <div class="edit-actions" style="justify-content: space-between;">
             <div class="meta">Full list (editable)</div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input id="listSearch" type="text" placeholder="Search EN..." style="max-width:220px;" />
+              <button class="reveal" id="toggleSortBtn">A → Z</button>
+              <button class="reveal" id="toggleDupesBtn">Show duplicates</button>
               <button class="reveal" id="saveListBtn">Save list</button>
               <button class="reveal" id="closeListBtn">Close list</button>
             </div>
@@ -447,6 +536,7 @@
           <table>
             <thead>
               <tr>
+                <th class="delete-cell">Del</th>
                 <th>EN</th>
                 <th>RU</th>
                 <th>Definition</th>
@@ -459,15 +549,16 @@
         </div>
       </div>
       <div style="display:flex; gap:10px; justify-content:flex-end;">
-        <button class="reveal" id="editBtn">Edit word</button>
-        <button class="reveal" id="deleteBtn">Delete word</button>
+        <button class="reveal" id="mainListBtn">Full list</button>
+        <button class="reveal" id="editBtn">Edit entry</button>
+        <button class="reveal" id="deleteBtn">Delete entry</button>
       </div>
     </div>
 
     <div class="panel bulk">
       <div class="meta">Bulk import</div>
-      <textarea id="bulkInput" placeholder="archipelago ; архипелаг ; группа островов... ; “Example.” ; факт"></textarea>
-      <button class="check" id="bulkAddBtn">Add words</button>
+      <textarea id="bulkInput" placeholder="word or phrase ; перевод ; определение ; “Example.” ; факт"></textarea>
+      <button class="check" id="bulkAddBtn">Add entries</button>
       <div class="meta" id="bulkStatus"></div>
     </div>
 
@@ -477,11 +568,12 @@
   <script>
     const levelIntervals = {
       1: 10 * 60 * 1000,
-      2: 60 * 60 * 1000,
-      3: 24 * 60 * 60 * 1000,
-      4: 3 * 24 * 60 * 60 * 1000,
-      5: 7 * 24 * 60 * 60 * 1000
+      2: 30 * 60 * 1000,
+      3: 60 * 60 * 1000,
+      4: 24 * 60 * 60 * 1000,
+      5: 3 * 24 * 60 * 60 * 1000
     };
+    const SESSION_LIMIT = 20;
 
     const state = {
       words: [],
@@ -491,17 +583,20 @@
 
     const levelEl = document.getElementById("level");
     const directionEl = document.getElementById("direction");
-    const streakEl = document.getElementById("streak");
     const promptEl = document.getElementById("prompt");
     const answerEl = document.getElementById("answer");
     const answerResult = document.getElementById("answerResult");
+    const exampleBox = document.getElementById("exampleBox");
     const speakBtn = document.getElementById("speakBtn");
     const nextBtn = document.getElementById("nextBtn");
     const deleteBtn = document.getElementById("deleteBtn");
+    const mainListBtn = document.getElementById("mainListBtn");
     const editBtn = document.getElementById("editBtn");
     const autoNextToggle = document.getElementById("autoNextToggle");
     const themeToggle = document.getElementById("themeToggle");
     const modeSelect = document.getElementById("modeSelect");
+    const practiceToggle = document.getElementById("practiceToggle");
+    const practiceHardToggle = document.getElementById("practiceHardToggle");
     const focusToggle = document.getElementById("focusToggle");
     const mainPanel = document.getElementById("mainPanel");
     const detailDefinition = document.getElementById("detailDefinition");
@@ -509,7 +604,6 @@
     const detailsEl = document.getElementById("details");
     const checkBtn = document.getElementById("checkBtn");
     const revealBtn = document.getElementById("revealBtn");
-    const skipBtn = document.getElementById("skipBtn");
     const bulkInput = document.getElementById("bulkInput");
     const bulkAddBtn = document.getElementById("bulkAddBtn");
     const bulkStatus = document.getElementById("bulkStatus");
@@ -525,11 +619,22 @@
     const listArea = document.getElementById("listArea");
     const listTableBody = document.getElementById("listTableBody");
     const closeListBtn = document.getElementById("closeListBtn");
+    const saveListBtn = document.getElementById("saveListBtn");
+    const toggleDupesBtn = document.getElementById("toggleDupesBtn");
+    const toggleSortBtn = document.getElementById("toggleSortBtn");
+    const listSearch = document.getElementById("listSearch");
 
     let isLocked = false;
     let pendingNext = false;
-    let autoNext = true;
+    let autoNext = false;
     let mode = "mixed";
+    let practiceMode = false;
+    let practiceOnlyHard = false;
+    let hardWeightBoost = 2.0;
+    let showDupesOnly = false;
+    let sortAsc = true;
+    let sessionShown = 0;
+    let recentPracticeIds = [];
 
     function calculateNextReview(level, isWrong = false) {
       if (isWrong) return Date.now() + 5 * 60 * 1000;
@@ -545,13 +650,22 @@
 
     function getDueWords() {
       const now = Date.now();
-      return state.words.filter((word) => word.next_review <= now);
+      return state.words.filter((word) => {
+        if (word.archived) return false;
+        if (practiceMode) {
+          if (practiceOnlyHard) {
+            return word.level <= 2;
+          }
+          return true;
+        }
+        return word.next_review <= now;
+      });
     }
 
     function getWeightedRandomWord(words) {
       const weights = words.map((word) => {
         const levelWeight = 6 - word.level;
-        const lowLevelBoost = word.level <= 2 ? 2 : 1;
+        const lowLevelBoost = word.level <= 2 ? hardWeightBoost : 1;
         return levelWeight * lowLevelBoost;
       });
       const total = weights.reduce((sum, w) => sum + w, 0);
@@ -572,6 +686,9 @@
         word.streak = 0;
       }
       word.next_review = calculateNextReview(word.level, !isCorrect);
+      if (word.level >= 5 && word.streak >= 3) {
+        word.archived = 1;
+      }
     }
 
     async function syncWord(word) {
@@ -581,7 +698,8 @@
         body: JSON.stringify({
           level: word.level,
           next_review: word.next_review,
-          streak: word.streak
+          streak: word.streak,
+          archived: word.archived || 0
         })
       });
     }
@@ -595,6 +713,7 @@
         answerEl.classList.remove("input-correct", "input-wrong");
         answerEl.style.display = "block";
         answerResult.style.display = "none";
+        exampleBox.style.display = "none";
         mainPanel.classList.remove("correct", "wrong");
         pendingNext = false;
         nextBtn.disabled = true;
@@ -605,7 +724,6 @@
         return;
       }
       levelEl.textContent = state.current.level;
-      streakEl.textContent = `🔥 ${state.current.streak}`;
       directionEl.textContent = state.direction === "RU_TO_EN" ? "RU → EN" : "EN → RU";
       promptEl.textContent = state.direction === "RU_TO_EN" ? state.current.ru : state.current.en;
       detailDefinition.textContent = state.current.definition || "—";
@@ -615,13 +733,13 @@
       answerEl.classList.remove("input-correct", "input-wrong");
       answerEl.style.display = "block";
       answerResult.style.display = "none";
+      exampleBox.style.display = "none";
       mainPanel.classList.remove("correct", "wrong");
       mainPanel.classList.remove("animate-in");
       void mainPanel.offsetWidth;
       mainPanel.classList.add("animate-in");
       isLocked = false;
       checkBtn.disabled = false;
-      skipBtn.disabled = false;
       revealBtn.disabled = false;
       nextBtn.disabled = true;
       pendingNext = false;
@@ -629,14 +747,32 @@
     }
 
     function pickNextWord() {
+      if (!practiceMode && sessionShown >= SESSION_LIMIT) {
+        state.current = null;
+        updateUI();
+        return;
+      }
       const due = getDueWords();
       if (!due.length) {
         state.current = null;
         updateUI();
         return;
       }
-      state.current = getWeightedRandomWord(due);
+      let pool = due;
+      if (practiceMode) {
+        const blocked = new Set(recentPracticeIds);
+        pool = due.filter((word) => !blocked.has(word.id));
+        if (!pool.length) {
+          pool = due;
+        }
+      }
+      state.current = getWeightedRandomWord(pool);
+      if (practiceMode && state.current) {
+        recentPracticeIds.push(state.current.id);
+        if (recentPracticeIds.length > 5) recentPracticeIds.shift();
+      }
       state.direction = chooseDirection();
+      if (!practiceMode) sessionShown += 1;
       updateUI();
     }
 
@@ -644,10 +780,33 @@
       return text.trim().toLowerCase();
     }
 
+    function normalizeForCompare(text) {
+      return String(text)
+        .toLowerCase()
+        .replace(/ё/g, "е")
+        .replace(/[“”"]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function splitVariants(text) {
+      return String(text)
+        .split(/[;,/]/)
+        .map((part) => normalizeForCompare(part))
+        .filter(Boolean);
+    }
+
+    function isCorrectAnswer(direction, userAnswerRaw, word) {
+      const target = direction === "RU_TO_EN" ? word.en : word.ru;
+      const variants = splitVariants(target);
+      if (!variants.length) return false;
+      const user = normalizeForCompare(userAnswerRaw);
+      return variants.includes(user);
+    }
+
     function setLocked() {
       isLocked = true;
       checkBtn.disabled = true;
-      skipBtn.disabled = true;
       revealBtn.disabled = true;
     }
 
@@ -692,11 +851,9 @@
       if (!state.current) return;
       if (isLocked) return;
       const userAnswerRaw = answerEl.value.trim();
-      const userAnswer = normalize(userAnswerRaw);
       const correctAnswerRaw = state.direction === "RU_TO_EN" ? state.current.en : state.current.ru;
-      const correctAnswer = normalize(correctAnswerRaw);
 
-      const isCorrect = userAnswer === correctAnswer;
+      const isCorrect = isCorrectAnswer(state.direction, userAnswerRaw, state.current);
       if (isCorrect) {
         mainPanel.classList.add("correct");
         mainPanel.classList.remove("wrong");
@@ -711,12 +868,16 @@
 
       if (!isCorrect) {
         const safeUser = userAnswerRaw || "—";
-        const example = state.current.example ? `<div style="margin-top:6px;">${escapeHtml(state.current.example)}</div>` : "";
-        answerResult.innerHTML = `<s>${escapeHtml(safeUser)}</s> → ${escapeHtml(correctAnswerRaw)}${example}`;
+        answerResult.innerHTML = `<s>${escapeHtml(safeUser)}</s> → ${escapeHtml(correctAnswerRaw)}`;
         answerResult.style.display = "block";
-      } else if (state.current.example) {
-        answerResult.innerHTML = `<div>${escapeHtml(state.current.example)}</div>`;
-        answerResult.style.display = "block";
+        answerEl.style.display = "none";
+      } else {
+        answerEl.style.display = "block";
+        answerResult.style.display = "none";
+      }
+      if (state.current.example) {
+        exampleBox.textContent = state.current.example;
+        exampleBox.style.display = "block";
       }
 
       detailsEl.classList.add("is-visible");
@@ -727,20 +888,19 @@
       scheduleNext(isCorrect ? 1400 : 1800);
     }
 
-    function handleSkip() {
-      if (!state.current) return;
-      if (isLocked) return;
-      pickNextWord();
-    }
 
     async function handleReveal() {
       if (!state.current) return;
       if (isLocked) return;
       const correctAnswerRaw = state.direction === "RU_TO_EN" ? state.current.en : state.current.ru;
       const safeUser = answerEl.value.trim() || "—";
-      const example = state.current.example ? `<div style="margin-top:6px;">${escapeHtml(state.current.example)}</div>` : "";
-      answerResult.innerHTML = `<s>${escapeHtml(safeUser)}</s> → ${escapeHtml(correctAnswerRaw)}${example}`;
+      answerResult.innerHTML = `<s>${escapeHtml(safeUser)}</s> → ${escapeHtml(correctAnswerRaw)}`;
       answerResult.style.display = "block";
+      answerEl.style.display = "none";
+      if (state.current.example) {
+        exampleBox.textContent = state.current.example;
+        exampleBox.style.display = "block";
+      }
       mainPanel.classList.add("wrong");
       mainPanel.classList.remove("correct");
       detailsEl.classList.add("is-visible");
@@ -752,8 +912,12 @@
 
     function handleNext() {
       if (!pendingNext) return;
+      if (editArea.classList.contains("is-open") || listArea.classList.contains("is-open")) {
+        return;
+      }
       pickNextWord();
     }
+
 
     function speakEnglish() {
       if (!state.current) return;
@@ -806,24 +970,81 @@
 
     function openFullList() {
       listTableBody.innerHTML = "";
-      state.words.forEach((word) => {
+      const counts = {};
+      const filtered = state.words.filter((word) => {
+        const term = (listSearch.value || "").trim().toLowerCase();
+        if (!term) return true;
+        return (word.en || "").toLowerCase().includes(term);
+      });
+      const sortedWords = [...filtered].sort((a, b) => {
+        const aKey = (a.en || "").toLowerCase();
+        const bKey = (b.en || "").toLowerCase();
+        return sortAsc ? aKey.localeCompare(bKey) : bKey.localeCompare(aKey);
+      });
+      sortedWords.forEach((word) => {
+        const key = (word.en || "").trim().toLowerCase();
+        if (!key) return;
+        counts[key] = (counts[key] || 0) + 1;
+      });
+      sortedWords.forEach((word) => {
         const row = document.createElement("tr");
+        row.dataset.id = word.id;
+        const enKey = (word.en || "").trim().toLowerCase();
+        const isDup = enKey && counts[enKey] > 1;
+        if (showDupesOnly && !isDup) {
+          return;
+        }
         row.innerHTML = `
-          <td>${escapeHtml(word.en || "")}</td>
-          <td>${escapeHtml(word.ru || "")}</td>
-          <td>${escapeHtml(word.definition || "")}</td>
-          <td>${escapeHtml(word.example || "")}</td>
-          <td>${escapeHtml(word.fact || "")}</td>
+          <td class="delete-cell"><button class="delete-row" data-id="${word.id}">✕</button></td>
+          <td><input type="text" value="${escapeHtml(word.en || "")}" data-field="en" /></td>
+          <td><input type="text" value="${escapeHtml(word.ru || "")}" data-field="ru" /></td>
+          <td><input type="text" value="${escapeHtml(word.definition || "")}" data-field="definition" /></td>
+          <td><input type="text" value="${escapeHtml(word.example || "")}" data-field="example" /></td>
+          <td><input type="text" value="${escapeHtml(word.fact || "")}" data-field="fact" /></td>
         `;
+        if (isDup) {
+          row.classList.add("dup");
+        }
         listTableBody.appendChild(row);
       });
+      listTableBody.querySelectorAll(".delete-row").forEach((btn) => {
+        btn.addEventListener("click", async (event) => {
+          const id = event.currentTarget.getAttribute("data-id");
+          if (!id) return;
+          await fetch(`/api/words/${id}`, { method: "DELETE" });
+          await loadWords();
+          openFullList();
+        });
+      });
       listArea.classList.add("is-open");
+    }
+
+    async function saveFullList() {
+      const rows = Array.from(listTableBody.querySelectorAll("tr"));
+      for (const row of rows) {
+        const id = row.dataset.id;
+        const inputs = row.querySelectorAll("input");
+        const payload = {};
+        inputs.forEach((input) => {
+          payload[input.dataset.field] = input.value.trim();
+        });
+        await fetch(`/api/words/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
+      await loadWords();
+      pickNextWord();
+      listArea.classList.remove("is-open");
     }
 
     async function loadWords() {
       const res = await fetch("/api/words");
       const data = await res.json();
       state.words = data.words || [];
+      sessionShown = 0;
+      recentPracticeIds = [];
     }
 
     async function handleBulkAdd() {
@@ -837,20 +1058,35 @@
         bulkStatus.textContent = "No valid lines found. Use: word ; translation ; definition ; example ; fact";
         return;
       }
-      bulkStatus.textContent = `Adding ${parsed.length} words...`;
-      const res = await fetch("/api/words", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ words: parsed })
-      });
+      bulkStatus.textContent = `Adding ${parsed.length} entries...`;
+      bulkAddBtn.disabled = true;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      let res;
+      try {
+        res = await fetch("/api/words", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ words: parsed }),
+          signal: controller.signal
+        });
+      } catch (err) {
+        bulkStatus.textContent = "Request timed out or failed. Is the server running?";
+        bulkAddBtn.disabled = false;
+        return;
+      } finally {
+        clearTimeout(timeoutId);
+      }
       if (!res.ok) {
         const errorText = await res.text();
         bulkStatus.textContent = `Failed to add words: ${errorText}`;
+        bulkAddBtn.disabled = false;
         return;
       }
       const data = await res.json();
-      bulkStatus.textContent = `Added ${data.inserted} words.`;
+      bulkStatus.textContent = `Added ${data.inserted} entries.`;
       bulkInput.value = "";
+      bulkAddBtn.disabled = false;
       await loadWords();
       pickNextWord();
     }
@@ -862,20 +1098,48 @@
 
     checkBtn.addEventListener("click", handleCheck);
     revealBtn.addEventListener("click", handleReveal);
-    skipBtn.addEventListener("click", handleSkip);
     nextBtn.addEventListener("click", handleNext);
     bulkAddBtn.addEventListener("click", handleBulkAdd);
     speakBtn.addEventListener("click", speakEnglish);
     deleteBtn.addEventListener("click", handleDelete);
     editBtn.addEventListener("click", openInlineEdit);
+    mainListBtn.addEventListener("click", openFullList);
     cancelEditBtn.addEventListener("click", closeInlineEdit);
     saveEditBtn.addEventListener("click", saveInlineEdit);
     listEditBtn.addEventListener("click", openFullList);
     closeListBtn.addEventListener("click", () => {
       listArea.classList.remove("is-open");
     });
+    saveListBtn.addEventListener("click", saveFullList);
+    toggleDupesBtn.addEventListener("click", () => {
+      showDupesOnly = !showDupesOnly;
+      toggleDupesBtn.textContent = showDupesOnly ? "Show all" : "Show duplicates";
+      openFullList();
+    });
+    toggleSortBtn.addEventListener("click", () => {
+      sortAsc = !sortAsc;
+      toggleSortBtn.textContent = sortAsc ? "A → Z" : "Z → A";
+      openFullList();
+    });
+    listSearch.addEventListener("input", () => {
+      openFullList();
+    });
     focusToggle.addEventListener("click", () => {
       document.body.classList.toggle("focus-mode");
+    });
+    practiceToggle.addEventListener("change", () => {
+      practiceMode = practiceToggle.checked;
+      localStorage.setItem("practiceMode", String(practiceMode));
+      sessionShown = 0;
+      recentPracticeIds = [];
+      pickNextWord();
+    });
+    practiceHardToggle.addEventListener("change", () => {
+      practiceOnlyHard = practiceHardToggle.checked;
+      localStorage.setItem("practiceOnlyHard", String(practiceOnlyHard));
+      sessionShown = 0;
+      recentPracticeIds = [];
+      pickNextWord();
     });
     autoNextToggle.addEventListener("change", () => {
       autoNext = autoNextToggle.checked;
@@ -902,10 +1166,27 @@
       }
     });
 
+    document.addEventListener("keydown", (event) => {
+      const isEditing = editArea.classList.contains("is-open") || listArea.classList.contains("is-open");
+      if (isEditing) return;
+      if (event.key === "Enter" && pendingNext && !autoNext) {
+        handleNext();
+      }
+      if (event.key === "ArrowRight") {
+        if (pendingNext && !autoNext) {
+          handleNext();
+        }
+      }
+    });
+
     const savedTheme = localStorage.getItem("theme") || "dark";
     applyTheme(savedTheme);
     mode = localStorage.getItem("mode") || "mixed";
     modeSelect.value = mode;
+    practiceMode = localStorage.getItem("practiceMode") === "true";
+    practiceToggle.checked = practiceMode;
+    practiceOnlyHard = localStorage.getItem("practiceOnlyHard") === "true";
+    practiceHardToggle.checked = practiceOnlyHard;
 
     loadWords().then(pickNextWord);
   </script>
