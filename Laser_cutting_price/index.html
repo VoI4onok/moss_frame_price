@@ -187,6 +187,31 @@
             color: #666;
             margin-top: 6px;
         }
+        .tariff-list {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e8dcc7;
+        }
+        .tariff-list-title {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .tariff-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            color: #444;
+            margin-top: 6px;
+        }
+        .tariff-item-label {
+            color: #666;
+        }
+        .tariff-item-value {
+            font-weight: 600;
+            white-space: nowrap;
+        }
         @media (max-width: 600px) {
             .result-columns {
                 flex-direction: column;
@@ -302,18 +327,26 @@
             <div class="result-column">
                 <div class="result-title">Общая сумма:</div>
                 <div class="result-value"><span id="resultTotalPrice">0</span> <span class="currency">€</span></div>
-                    <div class="result-sub">Площадь: <span id="resultAreaTotal">0</span> м²</div>
-                    <div class="result-sub">Резка: <span id="resultCuttingPrice">0</span> €</div>
-                    <div class="result-sub">Гравировка: <span id="resultEngravePrice">0</span> €</div>
+                <div class="result-sub">Площадь: <span id="resultAreaTotal">0</span> м²</div>
+                <div class="result-sub">Резка: <span id="resultCuttingPrice">0</span> €</div>
+                <div class="result-sub">Гравировка: <span id="resultEngravePrice">0</span> €</div>
                 <div class="result-sub">Материал: <span id="resultMaterialPrice">0</span> €</div>
+                <div class="tariff-list">
+                    <div class="tariff-list-title">Остальные тарифы:</div>
+                    <div id="resultOtherTariffsTotal"></div>
+                </div>
             </div>
             <div class="result-column">
                 <div class="result-title">Сумма за 1 изделие:</div>
                 <div class="result-value"><span id="resultPricePerItem">0</span> <span class="currency">€</span></div>
-                    <div class="result-sub">Площадь: <span id="resultAreaPerItem">0</span> м²</div>
-                    <div class="result-sub">Резка: <span id="resultCuttingPricePerItem">0</span> €</div>
-                    <div class="result-sub">Гравировка: <span id="resultEngravePricePerItem">0</span> €</div>
+                <div class="result-sub">Площадь: <span id="resultAreaPerItem">0</span> м²</div>
+                <div class="result-sub">Резка: <span id="resultCuttingPricePerItem">0</span> €</div>
+                <div class="result-sub">Гравировка: <span id="resultEngravePricePerItem">0</span> €</div>
                 <div class="result-sub">Материал: <span id="resultMaterialPricePerItem">0</span> €</div>
+                <div class="tariff-list">
+                    <div class="tariff-list-title">Остальные тарифы:</div>
+                    <div id="resultOtherTariffsPerItem"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -470,6 +503,32 @@
             }
         }
 
+        function renderOtherTariffs(material, selectedTariffIndex, length, engravePricePerItem, materialPricePerItem, quantity) {
+            const totalContainer = document.getElementById('resultOtherTariffsTotal');
+            const perItemContainer = document.getElementById('resultOtherTariffsPerItem');
+
+            totalContainer.innerHTML = '';
+            perItemContainer.innerHTML = '';
+
+            material.tariffs.forEach((tariff, index) => {
+                if (index === selectedTariffIndex) return;
+
+                const cuttingPricePerItem = length * tariff.pricePerMeter;
+                const pricePerItem = cuttingPricePerItem + engravePricePerItem + materialPricePerItem;
+                const totalPrice = pricePerItem * quantity;
+
+                const perItemRow = document.createElement('div');
+                perItemRow.className = 'tariff-item';
+                perItemRow.innerHTML = `<span class="tariff-item-label">${tariff.name}</span><span class="tariff-item-value">${pricePerItem.toFixed(2)} €</span>`;
+                perItemContainer.appendChild(perItemRow);
+
+                const totalRow = document.createElement('div');
+                totalRow.className = 'tariff-item';
+                totalRow.innerHTML = `<span class="tariff-item-label">${tariff.name}</span><span class="tariff-item-value">${totalPrice.toFixed(2)} €</span>`;
+                totalContainer.appendChild(totalRow);
+            });
+        }
+
         function calculatePrice() {
             const length = parseFloat(document.getElementById('length').value) || 0;
             const materialLengthMm = parseFloat(document.getElementById('materialLength').value) || 0;
@@ -549,6 +608,7 @@
             document.getElementById('resultMaterialPricePerItem').textContent = materialPricePerItem.toFixed(2);
             document.getElementById('resultAreaPerItem').textContent = materialArea.toFixed(3);
             document.getElementById('resultTotalPrice').textContent = totalPrice.toFixed(2);
+            renderOtherTariffs(material, tariffIndex, length, engravePricePerItem, materialPricePerItem, quantity);
             document.getElementById('result').classList.add('show');
         }
 
@@ -572,6 +632,8 @@
             document.getElementById('resultMaterialPricePerItem').textContent = '0';
             document.getElementById('resultAreaPerItem').textContent = '0';
             document.getElementById('resultTotalPrice').textContent = '0';
+            document.getElementById('resultOtherTariffsTotal').innerHTML = '';
+            document.getElementById('resultOtherTariffsPerItem').innerHTML = '';
             
             // Очищаем ошибки
             document.getElementById('lengthError').classList.remove('show');
