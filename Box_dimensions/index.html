@@ -455,48 +455,67 @@
           <div id="costResult"></div>
         </section>
         <section class="card">
-          <h2>Цены OSB и магазины</h2>
-          <div class="pill">OSB (8 мм) — цены и размеры</div>
-          <table>
-            <thead>
-              <tr><th>Материал</th><th>Размер листа</th><th>Цена за лист</th><th>Цена за м²</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><a class="link-badge" href="https://online.depo.lv/product/660" target="_blank" rel="noreferrer">OSB 8 мм</a></td>
-                <td>1.25 × 2.5 м</td>
-                <td>12.21 € (от 5 шт: 11.81 €)</td>
-                <td>3.91 € (от 5 шт: 3.78 €)</td>
-              </tr>
-              <tr>
-                <td><a class="link-badge" href="https://online.depo.lv/product/191074" target="_blank" rel="noreferrer">OSB 8 мм (меньший лист)</a></td>
-                <td>0.83 × 1.25 м</td>
-                <td>5.25 € (от 5 шт: 4.42 €)</td>
-                <td>5.06 € (от 5 шт: 4.26 €)</td>
-              </tr>
-            </tbody>
-          </table>
-          <p class="note">Цена за м² рассчитана по площади листа.</p>
-          <div class="pill" style="margin-top: 12px;">Пенопласт — ссылки</div>
-          <table>
-            <thead>
-              <tr><th>Материал</th><th>Размер</th><th>Цена</th><th>Ссылка</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Белый пенопласт</td>
-                <td>0.5 × 1.2 × 0.02 м</td>
-                <td>1.42 €/м²</td>
-                <td><a class="link-badge" href="https://online.depo.lv/product/1982" target="_blank" rel="noreferrer">DEPO (белый)</a></td>
-              </tr>
-              <tr>
-                <td>Синий пенопласт</td>
-                <td>0.5 × 1.2 × 0.02 м</td>
-                <td>1.98 €/м²</td>
-                <td><a class="link-badge" href="https://online.depo.lv/product/2046" target="_blank" rel="noreferrer">DEPO (синий)</a></td>
-              </tr>
-            </tbody>
-          </table>
+          <h2>Цены и магазины</h2>
+          <details class="help">
+            <summary>Фанера / OSB</summary>
+            <table>
+              <thead>
+                <tr><th>Материал</th><th>Размер листа</th><th>Цена за лист</th><th>Цена за м²</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><a class="link-badge" href="https://online.depo.lv/product/660" target="_blank" rel="noreferrer">OSB 8 мм</a></td>
+                  <td>1.25 × 2.5 м</td>
+                  <td>12.21 € (от 5 шт: 11.81 €)</td>
+                  <td>3.91 € (от 5 шт: 3.78 €)</td>
+                </tr>
+                <tr>
+                  <td><a class="link-badge" href="https://online.depo.lv/product/191074" target="_blank" rel="noreferrer">OSB 8 мм (меньший лист)</a></td>
+                  <td>0.83 × 1.25 м</td>
+                  <td>5.25 € (от 5 шт: 4.42 €)</td>
+                  <td>5.06 € (от 5 шт: 4.26 €)</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="note">Цена за м² рассчитана по площади листа.</p>
+          </details>
+          <details class="help">
+            <summary>Пенопласт</summary>
+            <table>
+              <thead>
+                <tr><th>Материал</th><th>Размер</th><th>Цена</th><th>Ссылка</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Белый пенопласт</td>
+                  <td>0.5 × 1.2 × 0.02 м</td>
+                  <td>1.42 €/м²</td>
+                  <td><a class="link-badge" href="https://online.depo.lv/product/1982" target="_blank" rel="noreferrer">DEPO (белый)</a></td>
+                </tr>
+                <tr>
+                  <td>Синий пенопласт</td>
+                  <td>0.5 × 1.2 × 0.02 м</td>
+                  <td>1.98 €/м²</td>
+                  <td><a class="link-badge" href="https://online.depo.lv/product/2046" target="_blank" rel="noreferrer">DEPO (синий)</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </details>
+          <details class="help">
+            <summary>Рейка</summary>
+            <table>
+              <thead>
+                <tr><th>Материал</th><th>Сечение</th><th>Цена</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Рейка</td>
+                  <td>15 × 30 мм</td>
+                  <td>0.86 €/м</td>
+                </tr>
+              </tbody>
+            </table>
+          </details>
         </section>
         <section class="card">
           <h2>Пояснения (можно раскрыть)</h2>
@@ -724,7 +743,7 @@
           (sideRailLong * 4) + (sideRailShort * 6) +
           (lidRailLong * 4) + (lidRailShort * 6);
         const railLengthWithWaste = railTotalLength * 1.1;
-        const railCost = railLengthWithWaste * 1.85;
+        const railCost = railLengthWithWaste * 0.86;
 
         const plywoodPricePerM2 = sheetProductPrice;
         const plywoodCost = plywoodAreaWithWaste * plywoodPricePerM2;
@@ -758,7 +777,7 @@
             </div>
             <div class="cost-row">
               <div>Рейки</div>
-              <div class="value-badge tip" data-tip="Длина: ${roundTo(railTotalLength, 2)} м. С отходами 10%: ${roundTo(railLengthWithWaste, 2)} м. Цена: 1.85 €/м.">
+              <div class="value-badge tip" data-tip="Длина: ${roundTo(railTotalLength, 2)} м. С отходами 10%: ${roundTo(railLengthWithWaste, 2)} м. Цена: 0.86 €/м.">
                 ${roundTo(railCost, 2)} €
               </div>
             </div>
