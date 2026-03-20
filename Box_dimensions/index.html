@@ -358,19 +358,11 @@
               <label for="thickness">Толщина (м)</label>
               <input id="thickness" type="number" min="0.001" step="0.001" value="0.04" />
             </div>
-            <div>
-              <label for="unit">Единицы измерения</label>
-              <select id="unit">
-                <option value="m">Метры</option>
-                <option value="cm">Сантиметры</option>
-                <option value="mm">Миллиметры</option>
-              </select>
-            </div>
           </div>
 
           <div class="toggle">
             <input id="foam" type="checkbox" />
-            <label for="foam">Добавить пенопласт (+<span id="foamAddLabel">0.04</span> <span class="unitLabel">м</span> по длине/высоте/толщине)</label>
+            <label for="foam">Добавить пенопласт (+0.04 м по длине/высоте/толщине)</label>
           </div>
 
           <button class="btn" id="calc">Рассчитать</button>
@@ -518,7 +510,7 @@
           </details>
           <details class="help">
             <summary>Пенопласт</summary>
-            <p class="note">Если включено, L, H и T увеличиваются на <span id="foamAddNote">0.04</span> <span class="unitLabel">м</span>.</p>
+            <p class="note">Если включено, L, H и T увеличиваются на 0.04 м.</p>
           </details>
           <details class="help">
             <summary>Фанера</summary>
@@ -530,8 +522,8 @@
           </details>
           <details class="help">
             <summary>Рейки</summary>
-            <p class="note">Рейки: сечение <span id="railThkLabel">0.015</span> × <span id="railWLabel">0.03</span> <span class="unitLabel">м</span>. Для расчёта длины вычитаем ширину <span id="railWNote">0.03</span> <span class="unitLabel">м</span>.</p>
-            <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×<span id="railWNote2">0.03</span> <span class="unitLabel">м</span>.</p>
+            <p class="note">Рейки: сечение 0.015 × 0.03 м. Для расчёта длины вычитаем ширину 0.03 м.</p>
+            <p class="note">На каждую сторону: 4 длинные по размеру стороны + 6 коротких по размеру стороны минус 2×0.03 м.</p>
             <p class="note">Поле «Вычесть из длины рейки (мм)» показывает дополнительное значение в скобках.</p>
           </details>
           <details class="help">
@@ -553,8 +545,6 @@
     <script>
       const el = (id) => document.getElementById(id);
 
-      const UNIT_FACTORS = { m: 1, cm: 100, mm: 1000 };
-      const UNIT_LABELS = { m: 'м', cm: 'см', mm: 'мм' };
       const SHEET_PRODUCTS = {
         osb_large: {
           name: 'OSB 1.25×2.5',
@@ -581,62 +571,19 @@
       const STORAGE_KEY = 'boxCalcStateV1';
       const LAYOUT_KEY = 'boxCalcSheetLayoutV1';
 
-      function unitFactor() {
-        return UNIT_FACTORS[el('unit').value] || 1;
-      }
-
-      function unitLabel() {
-        return UNIT_LABELS[el('unit').value] || 'м';
-      }
-
-      function factorForUnit(unit) {
-        return UNIT_FACTORS[unit] || 1;
-      }
-
       function roundTo(n, digits) {
         const p = Math.pow(10, digits);
         return Math.round(n * p) / p;
       }
 
       function formatValue(meters) {
-        const factor = unitFactor();
-        const u = meters * factor;
-        const digits = el('unit').value === 'm' ? 3 : el('unit').value === 'cm' ? 1 : 0;
-        return `${roundTo(u, digits)}`;
-      }
-
-      function toMeters(valueInUnit) {
-        return valueInUnit / unitFactor();
-      }
-
-      function fromMeters(valueInMeters) {
-        return valueInMeters * unitFactor();
-      }
-
-      function updateUnitLabels() {
-        document.querySelectorAll('.unitLabel').forEach((node) => {
-          node.textContent = unitLabel();
-        });
-
-        const foamAddM = 0.04;
-        el('foamAddLabel').textContent = formatValue(foamAddM);
-        el('foamAddNote').textContent = formatValue(foamAddM);
-
-        const railThkM = 0.015;
-        const railWM = 0.03;
-        el('railThkLabel').textContent = formatValue(railThkM);
-        el('railWLabel').textContent = formatValue(railWM);
-        el('railWNote').textContent = formatValue(railWM);
-        el('railWNote2').textContent = formatValue(railWM);
-
-        updateInputLabels();
+        return `${roundTo(meters, 3)}`;
       }
 
       function updateInputLabels() {
-        const labelSuffix = `(${unitLabel()})`;
-        el('length').previousElementSibling.textContent = `Длина ${labelSuffix}`;
-        el('height').previousElementSibling.textContent = `Высота ${labelSuffix}`;
-        el('thickness').previousElementSibling.textContent = `Толщина ${labelSuffix}`;
+        el('length').previousElementSibling.textContent = 'Длина (м)';
+        el('height').previousElementSibling.textContent = 'Высота (м)';
+        el('thickness').previousElementSibling.textContent = 'Толщина (м)';
         el('plywood').previousElementSibling.textContent = 'Толщина фанеры (мм)';
       }
 
@@ -665,10 +612,9 @@
 
       function getCurrentStateFromInputs() {
         return {
-          unit: el('unit').value,
-          length: toMeters(parseFloat(el('length').value || 0)),
-          height: toMeters(parseFloat(el('height').value || 0)),
-          thickness: toMeters(parseFloat(el('thickness').value || 0)),
+          length: parseFloat(el('length').value || 0),
+          height: parseFloat(el('height').value || 0),
+          thickness: parseFloat(el('thickness').value || 0),
           foam: el('foam').checked,
           plywoodMm: parseFloat(el('plywood').value || 0),
           railSubtractMm: parseFloat(el('railSubtractMm').value || 0),
@@ -722,9 +668,9 @@
       }
 
       function calc() {
-        const length = toMeters(parseFloat(el('length').value || 0));
-        const height = toMeters(parseFloat(el('height').value || 0));
-        const thickness = toMeters(parseFloat(el('thickness').value || 0));
+        const length = parseFloat(el('length').value || 0);
+        const height = parseFloat(el('height').value || 0);
+        const thickness = parseFloat(el('thickness').value || 0);
         const foam = el('foam').checked;
 
         const plyM = parseFloat(el('plywood').value || 0) / 1000;
@@ -793,13 +739,13 @@
                 <tr><th>Деталь</th><th>Размер</th><th>Кол-во</th></tr>
               </thead>
               <tbody>
-                <tr><td>Фасад</td><td><span class="value-badge">${formatValue(faceL)} × ${formatValue(faceH)} ${unitLabel()}</span></td><td>2</td></tr>
-                <tr><td>Бок</td><td><span class="value-badge">${formatValue(sideH)} × ${formatValue(sideT)} ${unitLabel()}</span></td><td>2</td></tr>
-                <tr><td>Крышка</td><td><span class="value-badge">${formatValue(lidL)} × ${formatValue(lidT)} ${unitLabel()}</span></td><td>2</td></tr>
+                <tr><td>Фасад</td><td><span class="value-badge">${formatValue(faceL)} × ${formatValue(faceH)} м</span></td><td>2</td></tr>
+                <tr><td>Бок</td><td><span class="value-badge">${formatValue(sideH)} × ${formatValue(sideT)} м</span></td><td>2</td></tr>
+                <tr><td>Крышка</td><td><span class="value-badge">${formatValue(lidL)} × ${formatValue(lidT)} м</span></td><td>2</td></tr>
               </tbody>
             </table>
           </div>
-          <p class="note">Лист фанеры: <span class="value-badge">${formatValue(sheetW)} × ${formatValue(sheetL)} ${unitLabel()}</span>.</p>
+          <p class="note">Лист фанеры: <span class="value-badge">${formatValue(sheetW)} × ${formatValue(sheetL)} м</span>.</p>
         `;
 
         const costHtml = `
@@ -854,8 +800,8 @@
         const groupedList = Array.from(grouped.values()).sort((a, b) => b.len - a.len);
 
         const slatsRows = groupedList.map((item) => {
-          const base = `<span class="value-badge">${formatValue(item.len)} ${unitLabel()}</span>`;
-          const adjusted = railSubtractMm > 0 ? ` <span class="note">(${formatValue(item.len - railSubtractM)} ${unitLabel()})</span>` : '';
+          const base = `<span class="value-badge">${formatValue(item.len)} м</span>`;
+          const adjusted = railSubtractMm > 0 ? ` <span class="note">(${formatValue(item.len - railSubtractM)} м)</span>` : '';
           const tooltipParts = Object.entries(item.bySide)
             .filter(([, cnt]) => cnt > 0)
             .map(([side, cnt]) => `${side}: ${cnt}`);
@@ -885,67 +831,67 @@
               <tr>
                 <td>Пенопласт</td>
                 <td>F = ${foam ? '0.04' : '0'} м</td>
-                <td>${formatValue(foamAdd)} ${unitLabel()}</td>
+                <td>${formatValue(foamAdd)} м</td>
               </tr>
               <tr>
                 <td>Длина с пенопластом</td>
                 <td>L' = L + F</td>
-                <td>${formatValue(L)} ${unitLabel()}</td>
+                <td>${formatValue(L)} м</td>
               </tr>
               <tr>
                 <td>Высота с пенопластом</td>
                 <td>H' = H + F</td>
-                <td>${formatValue(H)} ${unitLabel()}</td>
+                <td>${formatValue(H)} м</td>
               </tr>
               <tr>
                 <td>Толщина с пенопластом</td>
                 <td>T' = T + F</td>
-                <td>${formatValue(T)} ${unitLabel()}</td>
+                <td>${formatValue(T)} м</td>
               </tr>
               <tr>
                 <td>Фасад (длина)</td>
                 <td>FaceL = L' + 2*P + 2*R</td>
-                <td>${formatValue(faceL)} ${unitLabel()}</td>
+                <td>${formatValue(faceL)} м</td>
               </tr>
               <tr>
                 <td>Фасад (высота)</td>
                 <td>FaceH = H' + 2*P + 2*R</td>
-                <td>${formatValue(faceH)} ${unitLabel()}</td>
+                <td>${formatValue(faceH)} м</td>
               </tr>
               <tr>
                 <td>Бок (высота)</td>
                 <td>SideH = H'</td>
-                <td>${formatValue(sideH)} ${unitLabel()}</td>
+                <td>${formatValue(sideH)} м</td>
               </tr>
               <tr>
                 <td>Бок (толщина)</td>
                 <td>SideT = T'</td>
-                <td>${formatValue(sideT)} ${unitLabel()}</td>
+                <td>${formatValue(sideT)} м</td>
               </tr>
               <tr>
                 <td>Крышка (длина)</td>
                 <td>LidL = L' + 2*P + 2*R</td>
-                <td>${formatValue(lidL)} ${unitLabel()}</td>
+                <td>${formatValue(lidL)} м</td>
               </tr>
               <tr>
                 <td>Крышка (толщина)</td>
                 <td>LidT = T'</td>
-                <td>${formatValue(lidT)} ${unitLabel()}</td>
+                <td>${formatValue(lidT)} м</td>
               </tr>
               <tr>
                 <td>Рейки Фасад (короткие)</td>
                 <td>FaceShort = FaceH - 2*RW</td>
-                <td>${formatValue(faceRailShort)} ${unitLabel()}</td>
+                <td>${formatValue(faceRailShort)} м</td>
               </tr>
               <tr>
                 <td>Рейки Бок (короткие)</td>
                 <td>SideShort = SideT - 2*RW</td>
-                <td>${formatValue(sideRailShort)} ${unitLabel()}</td>
+                <td>${formatValue(sideRailShort)} м</td>
               </tr>
               <tr>
                 <td>Рейки Крышка (короткие)</td>
                 <td>LidShort = LidT - 2*RW</td>
-                <td>${formatValue(lidRailShort)} ${unitLabel()}</td>
+                <td>${formatValue(lidRailShort)} м</td>
               </tr>
             </tbody>
           </table>
@@ -1008,7 +954,7 @@
             <div class="palette-item" data-type="${type}">
               <div>
                 <div>${type}</div>
-                <div class="note">${formatValue(def.w)} × ${formatValue(def.h)} ${unitLabel()}</div>
+                <div class="note">${formatValue(def.w)} × ${formatValue(def.h)} м</div>
               </div>
               <div>
                 <button data-add="${type}">+</button>
@@ -1149,7 +1095,7 @@
               const y = pad + disp.y * scale;
               const w = Math.max(6, disp.w * scale);
               const h = Math.max(6, disp.h * scale);
-              const label = `${p.type} ${formatValue(p.w)}×${formatValue(p.h)} ${unitLabel()}`;
+              const label = `${p.type} ${formatValue(p.w)}×${formatValue(p.h)} м`;
               const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
               g.setAttribute('class', 'piece');
               g.dataset.id = p.id;
@@ -1375,7 +1321,6 @@
         }
 
         saveState({
-          unit: el('unit').value,
           length: length,
           height: height,
           thickness: thickness,
@@ -1391,12 +1336,11 @@
       }
 
       function setInputsFromState(state) {
-        el('unit').value = state.unit || 'm';
-        updateUnitLabels();
+        updateInputLabels();
 
-        el('length').value = roundTo(fromMeters(state.length || 0.6), 3);
-        el('height').value = roundTo(fromMeters(state.height || 0.4), 3);
-        el('thickness').value = roundTo(fromMeters(state.thickness || 0.04), 3);
+        el('length').value = roundTo(state.length || 0.6, 3);
+        el('height').value = roundTo(state.height || 0.4, 3);
+        el('thickness').value = roundTo(state.thickness || 0.04, 3);
         el('foam').checked = !!state.foam;
         el('plywood').value = state.plywoodMm ?? 4;
         el('railSubtractMm').value = state.railSubtractMm || 0;
@@ -1413,9 +1357,8 @@
         if (saved) {
           setInputsFromState(saved);
         } else {
-          updateUnitLabels();
+          updateInputLabels();
         }
-        el('unit').dataset.previousUnit = el('unit').value;
         calc();
       }
 
@@ -1433,8 +1376,7 @@
           e.preventDefault();
           const direction = e.deltaY < 0 ? 1 : -1;
           const current = parseFloat(input.value || 0);
-          const stepInUnit = stepInMeters * unitFactor();
-          const next = current + direction * stepInUnit;
+          const next = current + direction * stepInMeters;
           input.value = roundTo(next, 3);
           calc();
         }, { passive: false });
@@ -1461,29 +1403,8 @@
       }
 
       el('calc').addEventListener('click', calc);
-      el('unit').addEventListener('change', () => {
-        const previousUnit = el('unit').dataset.previousUnit || 'm';
-        const nextUnit = el('unit').value;
-        const previousFactor = factorForUnit(previousUnit);
-        const nextFactor = factorForUnit(nextUnit);
-
-        const lengthBase = parseFloat(el('length').value || 0) / previousFactor;
-        const heightBase = parseFloat(el('height').value || 0) / previousFactor;
-        const thicknessBase = parseFloat(el('thickness').value || 0) / previousFactor;
-
-        updateUnitLabels();
-
-        el('length').value = roundTo(lengthBase * nextFactor, 3);
-        el('height').value = roundTo(heightBase * nextFactor, 3);
-        el('thickness').value = roundTo(thicknessBase * nextFactor, 3);
-        el('unit').dataset.previousUnit = nextUnit;
-
-        calc();
-      });
       el('reset').addEventListener('click', () => {
-        el('unit').value = 'm';
-        updateUnitLabels();
-        el('unit').dataset.previousUnit = 'm';
+        updateInputLabels();
         el('length').value = 0.6;
         el('height').value = 0.4;
         el('thickness').value = 0.04;
@@ -1532,12 +1453,11 @@
         const a = document.createElement('a');
         const dt = new Date();
         const ts = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}-${String(dt.getHours()).padStart(2, '0')}${String(dt.getMinutes()).padStart(2, '0')}`;
-        const unit = el('unit').value;
         const sizeL = el('length').value || '0';
         const sizeH = el('height').value || '0';
         const sizeT = el('thickness').value || '0';
         const safe = (v) => String(v).replace(/[^\d.,-]/g, '').replace(',', '.');
-        const sizeLabel = `${safe(sizeL)}x${safe(sizeH)}x${safe(sizeT)}${unit}`;
+        const sizeLabel = `${safe(sizeL)}x${safe(sizeH)}x${safe(sizeT)}m`;
         a.href = URL.createObjectURL(blob);
         a.download = `box-${sizeLabel}-${ts}.json`;
         document.body.appendChild(a);
