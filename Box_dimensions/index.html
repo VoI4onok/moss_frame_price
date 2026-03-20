@@ -566,6 +566,10 @@
         return UNIT_LABELS[el('unit').value] || 'м';
       }
 
+      function factorForUnit(unit) {
+        return UNIT_FACTORS[unit] || 1;
+      }
+
       function roundTo(n, digits) {
         const p = Math.pow(10, digits);
         return Math.round(n * p) / p;
@@ -1376,6 +1380,7 @@
         } else {
           updateUnitLabels();
         }
+        el('unit').dataset.previousUnit = el('unit').value;
         calc();
       }
 
@@ -1422,21 +1427,28 @@
 
       el('calc').addEventListener('click', calc);
       el('unit').addEventListener('change', () => {
-        const lengthM = toMeters(parseFloat(el('length').value || 0));
-        const heightM = toMeters(parseFloat(el('height').value || 0));
-        const thicknessM = toMeters(parseFloat(el('thickness').value || 0));
+        const previousUnit = el('unit').dataset.previousUnit || 'm';
+        const nextUnit = el('unit').value;
+        const previousFactor = factorForUnit(previousUnit);
+        const nextFactor = factorForUnit(nextUnit);
+
+        const lengthBase = parseFloat(el('length').value || 0) / previousFactor;
+        const heightBase = parseFloat(el('height').value || 0) / previousFactor;
+        const thicknessBase = parseFloat(el('thickness').value || 0) / previousFactor;
 
         updateUnitLabels();
 
-        el('length').value = roundTo(fromMeters(lengthM), 3);
-        el('height').value = roundTo(fromMeters(heightM), 3);
-        el('thickness').value = roundTo(fromMeters(thicknessM), 3);
+        el('length').value = roundTo(lengthBase * nextFactor, 3);
+        el('height').value = roundTo(heightBase * nextFactor, 3);
+        el('thickness').value = roundTo(thicknessBase * nextFactor, 3);
+        el('unit').dataset.previousUnit = nextUnit;
 
         calc();
       });
       el('reset').addEventListener('click', () => {
         el('unit').value = 'm';
         updateUnitLabels();
+        el('unit').dataset.previousUnit = 'm';
         el('length').value = 0.6;
         el('height').value = 0.4;
         el('thickness').value = 0.04;
