@@ -391,18 +391,14 @@
           <div class="row">
             <div>
               <label for="plywood">Толщина фанеры (мм)</label>
-              <select id="plywood">
-                <option value="0.004">4 мм</option>
-                <option value="0.008">8 мм</option>
-                <option value="0.006">6 мм</option>
-                <option value="0.01">10 мм</option>
-              </select>
+              <input id="plywood" type="number" min="0.1" step="0.1" value="4" />
             </div>
             <div>
-              <label for="sheetProduct">OSB 8 мм (цена за м²)</label>
+              <label for="sheetProduct">Материал и лист</label>
               <select id="sheetProduct">
-                <option value="3.91">OSB 1.25×2.5 (3.91 €/м²)</option>
-                <option value="5.06">OSB 0.83×1.25 (5.06 €/м²)</option>
+                <option value="osb_large">OSB 1.25×2.5</option>
+                <option value="osb_small">OSB 0.83×1.25</option>
+                <option value="custom">Свой материал</option>
               </select>
             </div>
             <div>
@@ -411,6 +407,10 @@
                 <option value="retail">Обычная</option>
                 <option value="bulk">От 5 листов</option>
               </select>
+            </div>
+            <div>
+              <label for="sheetPricePerM2">Цена материала (€/м²)</label>
+              <input id="sheetPricePerM2" type="number" min="0" step="0.01" value="3.91" />
             </div>
             <div>
               <label for="facadeSplit">Если фасад не помещается</label>
@@ -555,6 +555,29 @@
 
       const UNIT_FACTORS = { m: 1, cm: 100, mm: 1000 };
       const UNIT_LABELS = { m: 'м', cm: 'см', mm: 'мм' };
+      const SHEET_PRODUCTS = {
+        osb_large: {
+          name: 'OSB 1.25×2.5',
+          w: 1.25,
+          h: 2.5,
+          retail: 3.91,
+          bulk: 3.78,
+        },
+        osb_small: {
+          name: 'OSB 0.83×1.25',
+          w: 0.83,
+          h: 1.25,
+          retail: 5.06,
+          bulk: 4.26,
+        },
+        custom: {
+          name: 'Свой материал',
+          w: 1.25,
+          h: 2.5,
+          retail: 0,
+          bulk: 0,
+        },
+      };
       const STORAGE_KEY = 'boxCalcStateV1';
       const LAYOUT_KEY = 'boxCalcSheetLayoutV1';
 
@@ -617,6 +640,16 @@
         el('plywood').previousElementSibling.textContent = 'Толщина фанеры (мм)';
       }
 
+      function syncSheetPriceInput() {
+        const product = SHEET_PRODUCTS[el('sheetProduct').value] || SHEET_PRODUCTS.osb_large;
+        const isCustom = el('sheetProduct').value === 'custom';
+        const price = el('bulkMode').value === 'bulk' ? product.bulk : product.retail;
+        if (!isCustom) {
+          el('sheetPricePerM2').value = roundTo(price, 2);
+        }
+        el('sheetPricePerM2').disabled = false;
+      }
+
       function saveState(state) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }
@@ -637,9 +670,10 @@
           height: toMeters(parseFloat(el('height').value || 0)),
           thickness: toMeters(parseFloat(el('thickness').value || 0)),
           foam: el('foam').checked,
-          plywood: parseFloat(el('plywood').value || 0),
+          plywoodMm: parseFloat(el('plywood').value || 0),
           railSubtractMm: parseFloat(el('railSubtractMm').value || 0),
-          sheetProductPrice: parseFloat(el('sheetProduct').value || 0),
+          sheetProduct: el('sheetProduct').value,
+          sheetPricePerM2: parseFloat(el('sheetPricePerM2').value || 0),
           bulkMode: el('bulkMode').value,
           facadeSplitCount: parseInt(el('facadeSplit').value || '2', 10),
           foamType: parseFloat(el('foamType').value || 0),
@@ -693,12 +727,12 @@
         const thickness = toMeters(parseFloat(el('thickness').value || 0));
         const foam = el('foam').checked;
 
-        const plyM = parseFloat(el('plywood').value || 0);
+        const plyM = parseFloat(el('plywood').value || 0) / 1000;
 
-        const sheetProductPrice = parseFloat(el('sheetProduct').value || 0);
-        const sheetSize = el('sheetProduct').value === '3.91'
-          ? { w: 1.25, h: 2.5 }
-          : { w: 0.83, h: 1.25 };
+        const sheetProduct = el('sheetProduct').value;
+        const sheetMeta = SHEET_PRODUCTS[sheetProduct] || SHEET_PRODUCTS.osb_large;
+        const sheetProductPrice = parseFloat(el('sheetPricePerM2').value || 0);
+        const sheetSize = { w: sheetMeta.w, h: sheetMeta.h };
         const sheetW = sheetSize.w;
         const sheetL = sheetSize.h;
         const bulkMode = el('bulkMode').value;
@@ -746,9 +780,7 @@
         const railLengthWithWaste = railTotalLength * 1.1;
         const railCost = railLengthWithWaste * 1.85;
 
-        const plywoodPricePerM2 = bulkMode === 'bulk'
-          ? (sheetProductPrice === 3.91 ? 3.78 : 4.26)
-          : sheetProductPrice;
+        const plywoodPricePerM2 = sheetProductPrice;
         const plywoodCost = plywoodAreaWithWaste * plywoodPricePerM2;
         const foamArea = 2 * (L * H + L * T + H * T);
         const foamAreaWithWaste = foamArea * 1.1;
@@ -1348,9 +1380,10 @@
           height: height,
           thickness: thickness,
           foam: foam,
-          plywood: plyM,
+          plywoodMm: parseFloat(el('plywood').value || 0),
           railSubtractMm: railSubtractMm,
-          sheetProductPrice: sheetProductPrice,
+          sheetProduct: sheetProduct,
+          sheetPricePerM2: sheetProductPrice,
           bulkMode: bulkMode,
           facadeSplitCount: facadeSplitCount,
           foamType: foamPricePerM2,
@@ -1365,12 +1398,14 @@
         el('height').value = roundTo(fromMeters(state.height || 0.4), 3);
         el('thickness').value = roundTo(fromMeters(state.thickness || 0.04), 3);
         el('foam').checked = !!state.foam;
-        el('plywood').value = String(state.plywood || 0.004);
+        el('plywood').value = state.plywoodMm ?? 4;
         el('railSubtractMm').value = state.railSubtractMm || 0;
-        el('sheetProduct').value = String(state.sheetProductPrice || 3.91);
+        el('sheetProduct').value = state.sheetProduct || 'osb_large';
+        el('sheetPricePerM2').value = state.sheetPricePerM2 ?? state.sheetProductPrice ?? 3.91;
         el('bulkMode').value = state.bulkMode || 'retail';
         el('facadeSplit').value = String(state.facadeSplitCount || 2);
         el('foamType').value = String(state.foamType || 1.42);
+        syncSheetPriceInput();
       }
 
       function init() {
@@ -1453,18 +1488,29 @@
         el('height').value = 0.4;
         el('thickness').value = 0.04;
         el('foam').checked = false;
-        el('plywood').value = 0.004;
-        el('sheetProduct').value = '3.91';
+        el('plywood').value = 4;
+        el('sheetProduct').value = 'osb_large';
+        el('sheetPricePerM2').value = 3.91;
         el('bulkMode').value = 'retail';
         el('facadeSplit').value = '2';
         el('foamType').value = '1.42';
         el('railSubtractMm').value = 0;
+        syncSheetPriceInput();
         calc();
       });
 
-      ['length', 'height', 'thickness', 'foam', 'plywood', 'railSubtractMm', 'sheetProduct', 'bulkMode', 'facadeSplit', 'foamType'].forEach((id) => {
+      ['length', 'height', 'thickness', 'foam', 'plywood', 'railSubtractMm', 'sheetProduct', 'sheetPricePerM2', 'bulkMode', 'facadeSplit', 'foamType'].forEach((id) => {
         el(id).addEventListener('input', calc);
         el(id).addEventListener('change', calc);
+      });
+
+      el('sheetProduct').addEventListener('change', () => {
+        syncSheetPriceInput();
+        calc();
+      });
+      el('bulkMode').addEventListener('change', () => {
+        syncSheetPriceInput();
+        calc();
       });
 
       el('exportBtn').addEventListener('click', () => {
@@ -1529,6 +1575,7 @@
       addWheelStep('length', 0.01);
       addWheelStep('height', 0.01);
       addWheelStep('thickness', 0.01);
+      addWheelStepFixed('plywood', 1);
       addWheelStepFixed('railSubtractMm', 1);
 
       init();
