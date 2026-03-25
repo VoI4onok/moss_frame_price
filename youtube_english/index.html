@@ -464,6 +464,10 @@
           Practice mode
         </label>
         <label>
+          <input type="checkbox" id="practiceZeroToggle" />
+          Practice zero
+        </label>
+        <label>
           <input type="checkbox" id="practiceHardToggle" />
           Only hard (Lv 1–2)
         </label>
@@ -596,6 +600,7 @@
     const themeToggle = document.getElementById("themeToggle");
     const modeSelect = document.getElementById("modeSelect");
     const practiceToggle = document.getElementById("practiceToggle");
+    const practiceZeroToggle = document.getElementById("practiceZeroToggle");
     const practiceHardToggle = document.getElementById("practiceHardToggle");
     const focusToggle = document.getElementById("focusToggle");
     const mainPanel = document.getElementById("mainPanel");
@@ -629,6 +634,7 @@
     let autoNext = false;
     let mode = "mixed";
     let practiceMode = false;
+    let practiceZeroMode = false;
     let practiceOnlyHard = false;
     let hardWeightBoost = 2.0;
     let showDupesOnly = false;
@@ -651,6 +657,7 @@
     function getDueWords() {
       const now = Date.now();
       return state.words.filter((word) => {
+        if (practiceZeroMode) return true;
         if (word.archived) return false;
         if (practiceMode) {
           if (practiceOnlyHard) {
@@ -663,6 +670,10 @@
     }
 
     function getWeightedRandomWord(words) {
+      if (practiceZeroMode) {
+        const index = Math.floor(Math.random() * words.length);
+        return words[index];
+      }
       const weights = words.map((word) => {
         const levelWeight = 6 - word.level;
         const lowLevelBoost = word.level <= 2 ? hardWeightBoost : 1;
@@ -747,7 +758,7 @@
     }
 
     function pickNextWord() {
-      if (!practiceMode && sessionShown >= SESSION_LIMIT) {
+      if (!practiceMode && !practiceZeroMode && sessionShown >= SESSION_LIMIT) {
         state.current = null;
         updateUI();
         return;
@@ -759,7 +770,7 @@
         return;
       }
       let pool = due;
-      if (practiceMode) {
+      if (practiceMode || practiceZeroMode) {
         const blocked = new Set(recentPracticeIds);
         pool = due.filter((word) => !blocked.has(word.id));
         if (!pool.length) {
@@ -767,12 +778,12 @@
         }
       }
       state.current = getWeightedRandomWord(pool);
-      if (practiceMode && state.current) {
+      if ((practiceMode || practiceZeroMode) && state.current) {
         recentPracticeIds.push(state.current.id);
         if (recentPracticeIds.length > 5) recentPracticeIds.shift();
       }
       state.direction = chooseDirection();
-      if (!practiceMode) sessionShown += 1;
+      if (!practiceMode && !practiceZeroMode) sessionShown += 1;
       updateUI();
     }
 
@@ -1129,7 +1140,24 @@
     });
     practiceToggle.addEventListener("change", () => {
       practiceMode = practiceToggle.checked;
+      if (practiceMode) {
+        practiceZeroMode = false;
+        practiceZeroToggle.checked = false;
+        localStorage.setItem("practiceZeroMode", "false");
+      }
       localStorage.setItem("practiceMode", String(practiceMode));
+      sessionShown = 0;
+      recentPracticeIds = [];
+      pickNextWord();
+    });
+    practiceZeroToggle.addEventListener("change", () => {
+      practiceZeroMode = practiceZeroToggle.checked;
+      if (practiceZeroMode) {
+        practiceMode = false;
+        practiceToggle.checked = false;
+        localStorage.setItem("practiceMode", "false");
+      }
+      localStorage.setItem("practiceZeroMode", String(practiceZeroMode));
       sessionShown = 0;
       recentPracticeIds = [];
       pickNextWord();
@@ -1185,6 +1213,12 @@
     modeSelect.value = mode;
     practiceMode = localStorage.getItem("practiceMode") === "true";
     practiceToggle.checked = practiceMode;
+    practiceZeroMode = localStorage.getItem("practiceZeroMode") === "true";
+    practiceZeroToggle.checked = practiceZeroMode;
+    if (practiceZeroMode) {
+      practiceMode = false;
+      practiceToggle.checked = false;
+    }
     practiceOnlyHard = localStorage.getItem("practiceOnlyHard") === "true";
     practiceHardToggle.checked = practiceOnlyHard;
 
